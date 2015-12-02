@@ -1,4 +1,4 @@
-/*	$OpenBSD: dhcp.c,v 1.41 2014/11/11 19:59:47 krw Exp $ */
+/*	$OpenBSD: dhcp.c,v 1.43 2015/08/20 22:39:29 deraadt Exp $ */
 
 /*
  * Copyright (c) 1995, 1996, 1997, 1998, 1999
@@ -366,6 +366,7 @@ dhcprequest(struct packet *packet)
 void
 dhcprelease(struct packet *packet)
 {
+	char ciaddrbuf[INET_ADDRSTRLEN];
 	struct lease *lease;
 	struct iaddr cip;
 	int i;
@@ -407,8 +408,11 @@ dhcprelease(struct packet *packet)
 		lease = find_lease_by_ip_addr(cip);
 	}
 
+	/* Can't do >1 inet_ntoa() in a printf()! */
+	strlcpy(ciaddrbuf, inet_ntoa(packet->raw->ciaddr), sizeof(ciaddrbuf));
+
 	note("DHCPRELEASE of %s from %s via %s (%sfound)",
-	    inet_ntoa(packet->raw->ciaddr),
+	    ciaddrbuf,
 	    print_hw_addr(packet->raw->htype, packet->raw->hlen,
 	    packet->raw->chaddr),
 	    packet->raw->giaddr.s_addr ? inet_ntoa(packet->raw->giaddr) :
@@ -432,7 +436,7 @@ dhcprelease(struct packet *packet)
 		 */
 		if (!lease->releasing) {
 			note("DHCPRELEASE of %s from %s via %s (found)",
-			    inet_ntoa(packet->raw->ciaddr),
+			    ciaddrbuf,
 			    print_hw_addr(packet->raw->htype,
 			    packet->raw->hlen, packet->raw->chaddr),
 			    packet->raw->giaddr.s_addr ?
@@ -446,7 +450,7 @@ dhcprelease(struct packet *packet)
 		} else {
 			note("DHCPRELEASE of %s from %s via %s ignored "
 			    "(release already pending)",
-			    inet_ntoa(packet->raw->ciaddr),
+			    ciaddrbuf,
 			    print_hw_addr(packet->raw->htype,
 			    packet->raw->hlen, packet->raw->chaddr),
 			    packet->raw->giaddr.s_addr ?
@@ -455,7 +459,7 @@ dhcprelease(struct packet *packet)
 		}
 	} else {
 		note("DHCPRELEASE of %s from %s via %s for nonexistent lease",
-		    inet_ntoa(packet->raw->ciaddr),
+		    ciaddrbuf,
 		    print_hw_addr(packet->raw->htype, packet->raw->hlen,
 		    packet->raw->chaddr),
 		    packet->raw->giaddr.s_addr ?
@@ -870,7 +874,7 @@ ack_lease(struct packet *packet, struct lease *lease, unsigned int offer,
 			lt.uid_len = packet->options[i].len;
 		} else {
 			lt.uid_max = lt.uid_len = packet->options[i].len;
-			lt.uid = (unsigned char *)malloc(lt.uid_max);
+			lt.uid = malloc(lt.uid_max);
 			if (!lt.uid)
 				error("can't allocate memory for large uid.");
 			memcpy(lt.uid, packet->options[i].data, lt.uid_len);
@@ -1213,6 +1217,7 @@ ack_lease(struct packet *packet, struct lease *lease, unsigned int offer,
 void
 dhcp_reply(struct lease *lease)
 {
+	char ciaddrbuf[INET_ADDRSTRLEN];
 	int bufs = 0, packet_length, i;
 	struct dhcp_packet raw;
 	struct sockaddr_in to;
@@ -1305,10 +1310,13 @@ dhcp_reply(struct lease *lease)
 	raw.hops = state->hops;
 	raw.op = BOOTREPLY;
 
+	/* Can't do >1 inet_ntoa() in a printf()! */
+	strlcpy(ciaddrbuf, inet_ntoa(state->ciaddr), sizeof(ciaddrbuf));
+
 	/* Say what we're doing... */
 	if ((state->offer == DHCPACK) && (lease->flags & INFORM_NOLEASE))
 		note("DHCPACK to %s (%s) via %s",
-		    inet_ntoa(state->ciaddr),
+		    ciaddrbuf,
 		    print_hw_addr(lease->hardware_addr.htype,
 		        lease->hardware_addr.hlen, lease->hardware_addr.haddr),
 		    state->giaddr.s_addr ? inet_ntoa(state->giaddr) :
