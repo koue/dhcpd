@@ -54,8 +54,13 @@ pftable_handler()
 
 	if ((fd = open(_PATH_DEV_PF, O_RDWR|O_NOFOLLOW, 0660)) == -1)
 		error("can't open pf device: %m");
-	if (chroot(_PATH_VAREMPTY) == -1)
+#ifdef __FreeBSD__
+	if (chroot("/var/empty") == -1)
+		error("chroot %s: %m", "/var/empty");
+#else
+	 if (chroot(_PATH_VAREMPTY) == -1)
 		error("chroot %s: %m", _PATH_VAREMPTY);
+#endif
 	if (chdir("/") == -1)
 		error("chdir(\"/\"): %m");
 	if (setgroups(1, &pw->pw_gid) ||

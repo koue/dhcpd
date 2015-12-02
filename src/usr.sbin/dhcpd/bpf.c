@@ -194,8 +194,10 @@ if_register_receive(struct interface_info *info)
 	if (ioctl(info->rfdesc, BIOCIMMEDIATE, &flag) == -1)
 		error("Can't set immediate mode on bpf device: %m");
 
+#ifndef __FreeBSD__
 	if (ioctl(info->rfdesc, BIOCSFILDROP, &flag) == -1)
 		error("Can't set filter-drop mode on bpf device: %m");
+#endif
 
 	/* make sure kernel fills in the source ethernet address */
 	if (ioctl(info->rfdesc, BIOCSHDRCMPLT, &cmplt) == -1)

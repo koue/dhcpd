@@ -73,13 +73,21 @@ error(char *fmt, ...)
 		write(STDERR_FILENO, mbuf, strlen(mbuf));
 		write(STDERR_FILENO, "\n", 1);
 	} else
+#ifdef __FreeBSD__
+		syslog(log_priority | LOG_ERR, "%s", mbuf);
+#else
 		syslog_r(log_priority | LOG_ERR, &sdata, "%s", mbuf);
+#endif
 
 	if (log_perror) {
 		fprintf(stderr, "exiting.\n");
 		fflush(stderr);
 	} else
+#ifdef __FreeBSD__
+		syslog(LOG_CRIT, "exiting.");
+#else
 		syslog_r(LOG_CRIT, &sdata, "exiting.");
+#endif
 
 	exit(1);
 }
@@ -102,7 +110,11 @@ warning(char *fmt, ...)
 		write(STDERR_FILENO, mbuf, strlen(mbuf));
 		write(STDERR_FILENO, "\n", 1);
 	} else
+#ifdef __FreeBSD__
+		syslog(log_priority | LOG_ERR, "%s", mbuf);
+#else
 		syslog_r(log_priority | LOG_ERR, &sdata, "%s", mbuf);
+#endif
 
 	return (0);
 }
@@ -125,7 +137,11 @@ note(char *fmt, ...)
 		write(STDERR_FILENO, mbuf, strlen(mbuf));
 		write(STDERR_FILENO, "\n", 1);
 	} else
+#ifdef __FreeBSD__
+		syslog(log_priority | LOG_INFO, "%s", mbuf);
+#else
 		syslog_r(log_priority | LOG_INFO, &sdata, "%s", mbuf);
+#endif
 
 	return (0);
 }
@@ -148,7 +164,11 @@ debug(char *fmt, ...)
 		write(STDERR_FILENO, mbuf, strlen(mbuf));
 		write(STDERR_FILENO, "\n", 1);
 	} else
+#ifdef __FreeBSD__
+		syslog(log_priority | LOG_DEBUG, "%s", mbuf);
+#else
 		syslog_r(log_priority | LOG_DEBUG, &sdata, "%s", mbuf);
+#endif
 
 	return (0);
 }
@@ -226,11 +246,20 @@ parse_warn(char *fmt, ...)
 		}
 		writev(STDERR_FILENO, iov, iovcnt);
 	} else {
+#ifdef __FreeBSD__
+		syslog(log_priority | LOG_ERR, "%s", mbuf);
+		syslog(log_priority | LOG_ERR, "%s", token_line);
+#else
 		syslog_r(log_priority | LOG_ERR, &sdata, "%s", mbuf);
 		syslog_r(log_priority | LOG_ERR, &sdata, "%s", token_line);
+#endif
 		if (lexchar < 81)
+#ifdef __FreeBSD__
+			syslog(log_priority | LOG_ERR, "%*c", lexchar, '^');
+#else
 			syslog_r(log_priority | LOG_ERR, &sdata, "%*c", lexchar,
 			    '^');
+#endif
 	}
 
 	warnings_occurred = 1;

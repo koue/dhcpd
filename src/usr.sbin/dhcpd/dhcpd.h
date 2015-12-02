@@ -474,6 +474,9 @@ typedef unsigned char option_mask[16];
 
 /* External definitions... */
 
+/* reallocarray.c */
+void *reallocarray(void *, size_t, size_t);
+
 /* options.c */
 void	 parse_options(struct packet *);
 void	 parse_option_buffer(struct packet *, unsigned char *, int);

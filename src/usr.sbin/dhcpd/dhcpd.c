@@ -66,7 +66,9 @@ char *path_dhcpd_db = _PATH_DHCPD_DB;
 char *abandoned_tab = NULL;
 char *changedmac_tab = NULL;
 char *leased_tab = NULL;
-struct syslog_data sdata = SYSLOG_DATA_INIT;
+#ifndef __FreeBSD__
+	struct syslog_data sdata = SYSLOG_DATA_INIT;
+#endif
 
 int
 main(int argc, char *argv[])
@@ -80,7 +82,9 @@ main(int argc, char *argv[])
 	struct in_addr udpaddr;
 
 	/* Initially, log errors to stderr as well as to syslogd. */
+#ifndef __FreeBSD__
 	openlog_r(__progname, LOG_PID | LOG_NDELAY, DHCPD_LOG_FACILITY, &sdata);
+#endif
 
 	opterr = 0;
 	while ((ch = getopt(argc, argv, "A:C:L:c:dfl:nu::Y:y:")) != -1)
@@ -182,11 +186,14 @@ main(int argc, char *argv[])
 	db_startup();
 	if (!udpsockmode || argc > 0)
 		discover_interfaces(&rdomain);
-
 	if (rdomain != -1)
+#ifdef __FreeBSD__
+		if (setfib(rdomain) == -1)
+			error("setfib (%m)");
+#else
 		if (setrtable(rdomain) == -1)
 			error("setrtable (%m)");
-
+#endif
 	if (udpsockmode)
 		udpsock_startup(udpaddr);
 	icmp_startup(1, lease_pinged);
@@ -216,7 +223,7 @@ main(int argc, char *argv[])
 			exit(1);
 		case 0:
 			/* child process. start up table engine */
-			pftable_handler();
+			pftable_handler(); 
 			/* NOTREACHED */
 			exit(1);
 		default:
@@ -224,9 +231,13 @@ main(int argc, char *argv[])
 			break;
 		}
 	}
-
+#ifdef __FreeBSD__
+	if (chroot("/var/empty") == -1)
+		error("chroot %s: %m", "/var/empty");
+#else
 	if (chroot(_PATH_VAREMPTY) == -1)
 		error("chroot %s: %m", _PATH_VAREMPTY);
+#endif
 	if (chdir("/") == -1)
 		error("chdir(\"/\"): %m");
 	if (setgroups(1, &pw->pw_gid) ||

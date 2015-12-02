@@ -38,7 +38,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sha1.h>
+#include <sha.h>
 
 #include <netdb.h>
 
@@ -144,7 +144,7 @@ sync_init(const char *iface, const char *baddr, u_short port)
 		}
 	}
 
-	sync_key = SHA1File(DHCP_SYNC_KEY, NULL);
+	sync_key = SHA1_File(DHCP_SYNC_KEY, NULL);
 	if (sync_key == NULL) {
 		if (errno != ENOENT) {
 			fprintf(stderr, "failed to open sync key: %s\n",
@@ -224,10 +224,17 @@ sync_init(const char *iface, const char *baddr, u_short port)
 	}
 
 	if (sync_debug)
+#ifdef __FreeBSD__
+		syslog(LOG_DEBUG, "using multicast dhcp sync %smode "
+			"(ttl %u, group %s, port %d)\n",
+			sendmcast ? "" : "receive ",
+			ttl, inet_ntoa(sync_out.sin_addr), port);
+#else
 		syslog_r(LOG_DEBUG, &sdata, "using multicast dhcp sync %smode "
 		    "(ttl %u, group %s, port %d)\n",
 		    sendmcast ? "" : "receive ",
 		    ttl, inet_ntoa(sync_out.sin_addr), port);
+#endif
 
 	return (syncfd);
 

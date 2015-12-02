@@ -633,9 +633,13 @@ get_rdomain(char *name)
 
 	bzero(&ifr, sizeof(ifr));
 	strlcpy(ifr.ifr_name, name, sizeof(ifr.ifr_name));
+#ifdef __FreeBSD__
+	if (ioctl(s, SIOCGIFFIB, (caddr_t)&ifr) != -1)
+		rv = ifr.ifr_fib;
+#else
 	if (ioctl(s, SIOCGIFRDOMAIN, (caddr_t)&ifr) != -1)
 		rv = ifr.ifr_rdomainid;
-
+#endif
 	close(s);
 	return rv;
 }
