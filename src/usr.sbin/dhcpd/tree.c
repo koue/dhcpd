@@ -1,4 +1,4 @@
-/*	$OpenBSD: tree.c,v 1.15 2010/01/02 04:21:16 krw Exp $ */
+/*	$OpenBSD: tree.c,v 1.17 2016/02/06 23:50:10 krw Exp $ */
 
 /* Routines for manipulating parse trees... */
 
@@ -40,6 +40,19 @@
  * Enterprises, see ``http://www.vix.com''.
  */
 
+#include <sys/types.h>
+#include <sys/socket.h>
+
+#include <net/if.h>
+
+#include <netinet/in.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "dhcp.h"
+#include "tree.h"
 #include "dhcpd.h"
 
 static time_t tree_evaluate_recurse(int *, unsigned char **, int *,
@@ -213,8 +226,7 @@ tree_evaluate(struct tree_cache *tree_cache)
 	 * Free the old buffer if needed, then store the new buffer
 	 * location and size and return.
 	 */
-	if (tree_cache->value)
-		free(tree_cache->value);
+	free(tree_cache->value);
 	tree_cache->value = bp;
 	tree_cache->len = bufix;
 	tree_cache->buf_size = bc;

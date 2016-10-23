@@ -1,4 +1,4 @@
-/*	$OpenBSD: memory.c,v 1.23 2015/02/10 23:06:13 krw Exp $ */
+/*	$OpenBSD: memory.c,v 1.25 2016/02/07 10:24:04 jsg Exp $ */
 
 /*
  * Copyright (c) 1995, 1996, 1997, 1998 The Internet Software Consortium.
@@ -38,6 +38,20 @@
  * Enterprises, see ``http://www.vix.com''.
  */
 
+#include <sys/types.h>
+#include <sys/socket.h>
+
+#include <arpa/inet.h>
+
+#include <net/if.h>
+
+#include <netdb.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "dhcp.h"
+#include "tree.h"
 #include "dhcpd.h"
 #include "sync.h"
 
@@ -299,6 +313,7 @@ new_address_range(struct iaddr low, struct iaddr high, struct subnet *subnet,
 			    lp->client_hostname;
 			supersede_lease(&address_range[lhost - i], lp, 0);
 			free(lp);
+			return;
 		} else
 			plp = lp;
 	}
