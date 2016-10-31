@@ -1,4 +1,4 @@
-/*	$OpenBSD: alloc.c,v 1.12 2010/01/02 04:21:16 krw Exp $	*/
+/*	$OpenBSD: alloc.c,v 1.14 2016/02/06 23:50:10 krw Exp $	*/
 
 /* Memory allocation... */
 
@@ -40,6 +40,18 @@
  * Enterprises, see ``http://www.vix.com''.
  */
 
+#include <sys/types.h>
+#include <sys/socket.h>
+
+#include <net/if.h>
+
+#include <netinet/in.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "dhcp.h"
+#include "tree.h"
 #include "dhcpd.h"
 
 struct lease_state *free_lease_states;
@@ -88,8 +100,7 @@ new_lease_state(char *name)
 void
 free_lease_state(struct lease_state *ptr, char *name)
 {
-	if (ptr->prl)
-		free(ptr->prl);
+	free(ptr->prl);
 	ptr->next = free_lease_states;
 	free_lease_states = ptr;
 }

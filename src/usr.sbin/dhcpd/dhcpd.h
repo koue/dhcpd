@@ -1,4 +1,4 @@
-/*	$OpenBSD: dhcpd.h,v 1.52 2014/07/11 16:48:29 yasuoka Exp $ */
+/*	$OpenBSD: dhcpd.h,v 1.55 2016/10/06 16:12:43 krw Exp $ */
 
 /*
  * Copyright (c) 1995, 1996, 1997, 1998, 1999
@@ -38,41 +38,12 @@
  * Enterprises, see ``http://www.vix.com''.
  */
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/stat.h>
-#include <sys/wait.h>
-#include <sys/sockio.h>
-#include <sys/time.h>
-
-#include <net/if.h>
-#include <net/if_dl.h>
-#include <net/route.h>
-
 #include <netinet/in.h>
-#include <arpa/inet.h>
-
-#include <ctype.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <limits.h>
-#include <netdb.h>
-#include <paths.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <syslog.h>
-#include <time.h>
-#include <unistd.h>
 
 #define ifr_netmask ifr_addr
 
 #define HAVE_SA_LEN
 #define HAVE_MKSTEMP
-
-#include "dhcp.h"
-#include "tree.h"
 
 #define DB_TIMEFMT	"%w %Y/%m/%d %T UTC"
 #define OLD_DB_TIMEFMT	"%w %Y/%m/%d %T"
@@ -167,11 +138,13 @@ struct lease {
 	unsigned char uid_buf[32];
 	char *hostname;
 	char *client_hostname;
+	uint8_t *client_identifier;
 	struct host_decl *host;
 	struct subnet *subnet;
 	struct shared_network *shared_network;
 	struct hardware hardware_addr;
 
+	int client_identifier_len;
 	int flags;
 #define STATIC_LEASE		1
 #define BOOTP_LEASE		2
@@ -566,7 +539,7 @@ int			 tree_evaluate(struct tree_cache *);
 /* dhcp.c */
 extern int	outstanding_pings;
 
-void dhcp(struct packet *);
+void dhcp(struct packet *, int);
 void dhcpdiscover(struct packet *);
 void dhcprequest(struct packet *);
 void dhcprelease(struct packet *);

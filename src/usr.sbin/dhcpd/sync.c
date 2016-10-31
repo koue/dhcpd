@@ -1,4 +1,4 @@
-/*	$OpenBSD: sync.c,v 1.16 2015/01/16 06:40:16 deraadt Exp $	*/
+/*	$OpenBSD: sync.c,v 1.19 2016/10/21 11:34:48 mestre Exp $	*/
 
 /*
  * Copyright (c) 2008 Bob Beck <beck@openbsd.org>
@@ -18,32 +18,32 @@
  */
 
 #include <sys/stdint.h>
-#include <sys/file.h>
-#include <sys/wait.h>
-#include <sys/socket.h>
-#include <sys/resource.h>
-#include <sys/uio.h>
+#include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/queue.h>
-
+#include <sys/socket.h>
 
 #include <net/if.h>
-#include <netinet/in.h>
+
 #include <arpa/inet.h>
 
-#include <err.h>
-#include <errno.h>
-#include <pwd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sha.h>
-
-#include <netdb.h>
+#include <netinet/in.h>
 
 #include <openssl/hmac.h>
 
+#include <errno.h>
+#include <netdb.h>
+#ifdef __OpenBSD__
+#include <sha1.h>
+#else
+#include <sha.h>
+#endif
+#include <string.h>
+#include <syslog.h>
+#include <unistd.h>
+
+#include "dhcp.h"
+#include "tree.h"
 #include "dhcpd.h"
 #include "sync.h"
 
@@ -74,7 +74,7 @@ sync_addhost(const char *name, u_short port)
 	struct sync_host *shost;
 	struct sockaddr_in *addr = NULL;
 
-	bzero(&hints, sizeof(hints));
+	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = PF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	if (getaddrinfo(name, NULL, &hints, &res0) != 0)
@@ -130,7 +130,7 @@ sync_init(const char *iface, const char *baddr, u_short port)
 	if (iface != NULL)
 		sendmcast++;
 
-	bzero(&ina, sizeof(ina));
+	memset(&ina, 0, sizeof(ina));
 	if (baddr != NULL) {
 		if (inet_pton(AF_INET, baddr, &ina) != 1) {
 			ina.s_addr = htonl(INADDR_ANY);
@@ -163,7 +163,7 @@ sync_init(const char *iface, const char *baddr, u_short port)
 	    sizeof(one)) == -1)
 		goto fail;
 
-	bzero(&sync_out, sizeof(sync_out));
+	memset(&sync_out, 0, sizeof(sync_out));
 	sync_out.sin_family = AF_INET;
 	sync_out.sin_len = sizeof(sync_out);
 	sync_out.sin_addr.s_addr = ina.s_addr;
@@ -191,19 +191,19 @@ sync_init(const char *iface, const char *baddr, u_short port)
 		}
 	}
 
-	bzero(&ifr, sizeof(ifr));
+	memset(&ifr, 0, sizeof(ifr));
 	strlcpy(ifr.ifr_name, ifnam, sizeof(ifr.ifr_name));
 	if (ioctl(syncfd, SIOCGIFADDR, &ifr) == -1)
 		goto fail;
 
-	bzero(&sync_in, sizeof(sync_in));
+	memset(&sync_in, 0, sizeof(sync_in));
 	addr = (struct sockaddr_in *)&ifr.ifr_addr;
 	sync_in.sin_family = AF_INET;
 	sync_in.sin_len = sizeof(sync_in);
 	sync_in.sin_addr.s_addr = addr->sin_addr.s_addr;
 	sync_in.sin_port = htons(port);
 
-	bzero(&mreq, sizeof(mreq));
+	memset(&mreq, 0, sizeof(mreq));
 	sync_out.sin_addr.s_addr = inet_addr(DHCP_SYNC_MCASTADDR);
 	mreq.imr_multiaddr.s_addr = inet_addr(DHCP_SYNC_MCASTADDR);
 	mreq.imr_interface.s_addr = sync_in.sin_addr.s_addr;
@@ -259,8 +259,8 @@ sync_recv(void)
 	ssize_t len;
 	u_int hmac_len;
 
-	bzero(&addr, sizeof(addr));
-	bzero(buf, sizeof(buf));
+	memset(&addr, 0, sizeof(addr));
+	memset(buf, 0, sizeof(buf));
 
 	addr_len = sizeof(addr);
 	if ((len = recvfrom(syncfd, buf, sizeof(buf), 0,
@@ -282,7 +282,7 @@ sync_recv(void)
 
 	/* Compute and validate HMAC */
 	memcpy(hmac[0], hdr->sh_hmac, DHCP_SYNC_HMAC_LEN);
-	bzero(hdr->sh_hmac, DHCP_SYNC_HMAC_LEN);
+	explicit_bzero(hdr->sh_hmac, DHCP_SYNC_HMAC_LEN);
 	HMAC(EVP_sha1(), sync_key, strlen(sync_key), buf, len,
 	    hmac[1], &hmac_len);
 	if (bcmp(hmac[0], hmac[1], DHCP_SYNC_HMAC_LEN) != 0)
@@ -367,12 +367,12 @@ sync_send(struct iovec *iov, int iovlen)
 {
 	struct sync_host *shost;
 	struct msghdr msg;
-	
+
 	if (syncfd == -1)
 		return;
 
 	/* setup buffer */
-	bzero(&msg, sizeof(msg));
+	memset(&msg, 0, sizeof(msg));
 	msg.msg_iov = iov;
 	msg.msg_iovlen = iovlen;
 
@@ -412,9 +412,9 @@ sync_lease(struct lease *lease)
 	if (sync_key == NULL)
 		return;
 
-	bzero(&hdr, sizeof(hdr));
-	bzero(&lv, sizeof(lv));
-	bzero(&pad, sizeof(pad));
+	memset(&hdr, 0, sizeof(hdr));
+	memset(&lv, 0, sizeof(lv));
+	memset(&pad, 0, sizeof(pad));
 
 	HMAC_CTX_init(&ctx);
 	HMAC_Init(&ctx, sync_key, strlen(sync_key), EVP_sha1());

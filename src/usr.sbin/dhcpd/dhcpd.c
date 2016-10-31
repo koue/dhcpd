@@ -1,4 +1,4 @@
-/*	$OpenBSD: dhcpd.c,v 1.48 2015/02/10 23:06:13 krw Exp $ */
+/*	$OpenBSD: dhcpd.c,v 1.52 2016/08/27 01:26:22 guenther Exp $ */
 
 /*
  * Copyright (c) 2004 Henning Brauer <henning@cvs.openbsd.org>
@@ -39,13 +39,31 @@
  * Enterprises, see ``http://www.vix.com''.
  */
 
+#include <sys/types.h>
+#include <sys/socket.h>
+
+#include <net/if.h>
+
+#include <arpa/inet.h>
+
+#include <err.h>
+#include <netdb.h>
+#include <paths.h>
+#include <pwd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <syslog.h>
+#include <time.h>
+#include <unistd.h>
+
+#include "dhcp.h"
+#include "tree.h"
 #include "dhcpd.h"
 #include "sync.h"
 
-#include <err.h>
-#include <pwd.h>
 
-void usage(void);
+__dead void usage(void);
 
 time_t cur_time, last_scan;
 struct group root_group;
@@ -66,7 +84,7 @@ char *path_dhcpd_db = _PATH_DHCPD_DB;
 char *abandoned_tab = NULL;
 char *changedmac_tab = NULL;
 char *leased_tab = NULL;
-#ifndef __FreeBSD__
+#ifdef __OpenBSD__
 	struct syslog_data sdata = SYSLOG_DATA_INIT;
 #endif
 
@@ -82,7 +100,7 @@ main(int argc, char *argv[])
 	struct in_addr udpaddr;
 
 	/* Initially, log errors to stderr as well as to syslogd. */
-#ifndef __FreeBSD__
+#ifdef __OpenBSD__
 	openlog_r(__progname, LOG_PID | LOG_NDELAY, DHCPD_LOG_FACILITY, &sdata);
 #endif
 
@@ -187,16 +205,13 @@ main(int argc, char *argv[])
 	if (!udpsockmode || argc > 0)
 		discover_interfaces(&rdomain);
 	if (rdomain != -1)
-#ifdef __FreeBSD__
-		if (setfib(rdomain) == -1)
-			error("setfib (%m)");
-#else
+#ifdef __OpenBSD__
 		if (setrtable(rdomain) == -1)
 			error("setrtable (%m)");
+#else
+		if (setfib(rdomain) == -1)
+			error("setfib (%m)");
 #endif
-	if (udpsockmode)
-		udpsock_startup(udpaddr);
-	icmp_startup(1, lease_pinged);
 
 	if (syncsend || syncrecv) {
 		syncfd = sync_init(sync_iface, sync_baddr, sync_port);
@@ -204,11 +219,11 @@ main(int argc, char *argv[])
 			err(1, "sync init");
 	}
 
-	if ((pw = getpwnam("_dhcp")) == NULL)
-		error("user \"_dhcp\" not found");
-
 	if (daemonize)
 		daemon(0, 0);
+
+	if ((pw = getpwnam("_dhcp")) == NULL)
+		error("user \"_dhcp\" not found");
 
 	/* don't go near /dev/pf unless we actually intend to use it */
 	if ((abandoned_tab != NULL) ||
@@ -233,12 +248,18 @@ main(int argc, char *argv[])
 			break;
 		}
 	}
-#ifdef __FreeBSD__
-	if (chroot("/var/empty") == -1)
-		error("chroot %s: %m", "/var/empty");
-#else
+
+	if (udpsockmode)
+		udpsock_startup(udpaddr);
+
+	icmp_startup(1, lease_pinged);
+
+#ifdef __OpenBSD__
 	if (chroot(_PATH_VAREMPTY) == -1)
 		error("chroot %s: %m", _PATH_VAREMPTY);
+#else
+	if (chroot("/var/empty") == -1)
+		error("chroot %s: %m", "/var/empty");
 #endif
 	if (chdir("/") == -1)
 		error("chdir(\"/\"): %m");
@@ -247,6 +268,16 @@ main(int argc, char *argv[])
 	    setresuid(pw->pw_uid, pw->pw_uid, pw->pw_uid))
 		error("can't drop privileges: %m");
 
+#ifdef __OpenBSD__
+	if (udpsockmode) {
+		if (pledge("stdio inet route sendfd", NULL) == -1)
+			err(1, "pledge");
+	} else {
+		if (pledge("stdio inet sendfd", NULL) == -1)
+			err(1, "pledge");
+	}
+#endif
+
 	add_timeout(cur_time + 5, periodic_scan, NULL);
 	dispatch();
 
@@ -254,7 +285,7 @@ main(int argc, char *argv[])
 	exit(0);
 }
 
-void
+__dead void
 usage(void)
 {
 	extern char *__progname;

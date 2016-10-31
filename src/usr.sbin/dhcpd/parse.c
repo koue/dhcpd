@@ -1,4 +1,4 @@
-/*	$OpenBSD: parse.c,v 1.18 2015/05/18 17:51:21 krw Exp $	*/
+/*	$OpenBSD: parse.c,v 1.21 2016/08/27 01:26:22 guenther Exp $	*/
 
 /* Common parser code for dhcpd and dhclient. */
 
@@ -40,8 +40,22 @@
  * Enterprises, see ``http://www.vix.com''.
  */
 
-#include  <stdint.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 
+#include <net/if.h>
+
+#include <netinet/in.h>
+
+#include <ctype.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+#include "dhcp.h"
+#include "tree.h"
 #include "dhcpd.h"
 #include "dhctoken.h"
 
@@ -267,6 +281,8 @@ parse_lease_time(FILE *cfile, time_t *timep)
 		skip_to_semi(cfile);
 		return;
 	}
+
+	*timep = value;
 
 	parse_semi(cfile);
 }

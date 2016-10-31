@@ -40,6 +40,8 @@
  * Enterprises, see ``http://www.vix.com''.
  */
 
+#include <netinet/in.h>
+
 #define DHCP_UDP_OVERHEAD	(20 + /* IP header */		\
 				 8)   /* UDP header */
 #define DHCP_SNAME_LEN		64

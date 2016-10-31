@@ -1,4 +1,4 @@
-/*	$OpenBSD: udpsock.c,v 1.2 2015/01/16 06:40:16 deraadt Exp $	*/
+/*	$OpenBSD: udpsock.c,v 1.7 2016/04/27 10:16:10 mestre Exp $	*/
 
 /*
  * Copyright (c) 2014 YASUOKA Masahiko <yasuoka@openbsd.org>
@@ -16,17 +16,26 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <sys/param.h>	/* nitems */
-#include <sys/socket.h>
-#include <sys/uio.h>
+#include <sys/types.h>
 #include <sys/ioctl.h>
-#include <netinet/in.h>
+#include <sys/socket.h>
+
 #include <arpa/inet.h>
 
-#include <errno.h>
-#include <stdint.h>
-#include <string.h>
+#include <net/if.h>
+#include <net/if_dl.h>
 
+#include <netinet/in.h>
+
+#include <ctype.h>
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+#include "dhcp.h"
+#include "tree.h"
 #include "dhcpd.h"
 
 void	 udpsock_handler (struct protocol *);
@@ -100,7 +109,7 @@ udpsock_handler(struct protocol *protocol)
 	m.msg_name = &ss;
 	m.msg_namelen = sizeof(ss);
 	m.msg_iov = iov;
-	m.msg_iovlen = nitems(iov);
+	m.msg_iovlen = 1;
 	m.msg_control = cbuf;
 	m.msg_controllen = sizeof(cbuf);
 

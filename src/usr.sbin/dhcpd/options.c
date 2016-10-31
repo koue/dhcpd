@@ -1,4 +1,4 @@
-/*	$OpenBSD: options.c,v 1.29 2015/06/27 14:29:39 krw Exp $	*/
+/*	$OpenBSD: options.c,v 1.32 2016/10/04 22:47:51 krw Exp $	*/
 
 /* DHCP options parsing and reassembly. */
 
@@ -40,8 +40,19 @@
  * Enterprises, see ``http://www.vix.com''.
  */
 
-#include <ctype.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 
+#include <net/if.h>
+
+#include <netinet/in.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "dhcp.h"
+#include "tree.h"
 #include "dhcpd.h"
 
 int bad_options = 0;
@@ -237,16 +248,16 @@ create_priority_list(unsigned char *priority_list, unsigned char *prl,
 	for(i = 0; i < prl_len; i++) {
 		if (stored_list[prl[i]])
 			continue;
-		priority_list[priority_len++] = prl[i];	
+		priority_list[priority_len++] = prl[i];
 		stored_list[prl[i]] = 1;
-	}	
+	}
 
 	/* Default priority list. */
 	prl = dhcp_option_default_priority_list;
 	for(i = 0; i < 256; i++) {
 		if (stored_list[prl[i]])
 			continue;
-		priority_list[priority_len++] = prl[i];	
+		priority_list[priority_len++] = prl[i];
 		stored_list[prl[i]] = 1;
 	}
 }
@@ -536,15 +547,8 @@ do_packet(struct interface_info *interface, struct dhcp_packet *packet,
 	    tp.options[DHO_DHCP_MESSAGE_TYPE].data)
 		tp.packet_type = tp.options[DHO_DHCP_MESSAGE_TYPE].data[0];
 
-	if (interface->is_udpsock) {
-		if (tp.packet_type != DHCPINFORM) {
-			note("Unable to handle a DHCP message type=%d on UDP "
-			    "socket", tp.packet_type);
-			return;
-		}
-	}
 	if (tp.packet_type)
-		dhcp(&tp);
+		dhcp(&tp, interface->is_udpsock);
 	else
 		bootp(&tp);
 
