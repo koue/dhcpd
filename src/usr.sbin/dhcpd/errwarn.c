@@ -55,6 +55,10 @@
 #include <syslog.h>
 #include <unistd.h>
 
+#ifndef __OpenBSD__
+#include <sys/uio.h>
+#endif
+
 #include "dhcp.h"
 #include "tree.h"
 #include "dhcpd.h"

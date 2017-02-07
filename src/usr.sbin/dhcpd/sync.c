@@ -47,6 +47,9 @@
 #include "dhcpd.h"
 #include "sync.h"
 
+void
+explicit_bzero(void *buf, size_t len);
+
 int sync_debug;
 
 u_int32_t sync_counter;
