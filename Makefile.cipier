@@ -1,0 +1,33 @@
+# $FreeBSD: head/net/dhcpd/Makefile 433752 2017-02-09 17:44:36Z krion $
+
+PORTNAME=	dhcpd
+PORTVERSION=	6.0.20170207
+CATEGORIES=	net
+
+MAINTAINER=	koue@chaosophia.net
+COMMENT=	OpenBSD dhcp daemon
+
+LICENSE=	BSD3CLAUSE
+
+WRKSRC_SUBDIR=	src/usr.sbin/${PORTNAME}
+
+USE_GITHUB=	yes
+GH_ACCOUNT=	koue
+
+CONFLICTS=	isc-dhcp4[1-3]-server*
+
+USES=		ssl uidfix
+USE_RC_SUBR=	dhcpd
+
+CFLAGS+=	-Wall
+
+MAKE_ARGS+=	BINDIR=${PREFIX}/sbin MANDIR=${PREFIX}/man/man
+
+USERS=		dhcpd
+GROUPS=		dhcpd
+
+post-install:
+	${INSTALL_DATA} ${WRKSRC}/dhcpd.conf \
+		${STAGEDIR}${PREFIX}/etc/dhcpd.conf.sample
+
+.include <bsd.port.mk>
