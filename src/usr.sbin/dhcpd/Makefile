@@ -9,9 +9,6 @@ SRCS=	bootp.c confpars.c db.c dhcp.c dhcpd.c bpf.c packet.c log.c \
 PROG=	dhcpd
 MAN=	dhcpd.8 dhcpd.conf.5 dhcpd.leases.5 dhcp-options.5
 
-.PATH:	${.CURDIR}/../../lib/libc/string
-SRCS+=	explicit_bzero.c
-
 LDADD+=-lcrypto -lmd
 CFLAGS+=-Wall -D__dead=''
 
