@@ -1,4 +1,4 @@
-/*	$OpenBSD: dhcpd.c,v 1.52 2016/08/27 01:26:22 guenther Exp $ */
+/*	$OpenBSD: dhcpd.c,v 1.56 2017/02/16 00:24:43 krw Exp $ */
 
 /*
  * Copyright (c) 2004 Henning Brauer <henning@cvs.openbsd.org>
@@ -60,6 +60,7 @@
 #include "dhcp.h"
 #include "tree.h"
 #include "dhcpd.h"
+#include "log.h"
 #include "sync.h"
 
 
@@ -73,7 +74,6 @@ u_int16_t client_port;
 
 struct passwd *pw;
 int log_priority;
-int log_perror = 0;
 int pfpipe[2];
 int gotpipe = 0;
 int syncrecv;
@@ -84,25 +84,19 @@ char *path_dhcpd_db = _PATH_DHCPD_DB;
 char *abandoned_tab = NULL;
 char *changedmac_tab = NULL;
 char *leased_tab = NULL;
-#ifdef __OpenBSD__
-	struct syslog_data sdata = SYSLOG_DATA_INIT;
-#endif
 
 int
 main(int argc, char *argv[])
 {
 	int ch, cftest = 0, daemonize = 1, rdomain = -1, udpsockmode = 0;
-	extern char *__progname;
 	char *sync_iface = NULL;
 	char *sync_baddr = NULL;
 	u_short sync_port = 0;
 	struct servent *ent;
 	struct in_addr udpaddr;
 
-	/* Initially, log errors to stderr as well as to syslogd. */
-#ifdef __OpenBSD__
-	openlog_r(__progname, LOG_PID | LOG_NDELAY, DHCPD_LOG_FACILITY, &sdata);
-#endif
+	log_init(1, LOG_DAEMON);	/* log to stderr until daemonized */
+	log_setverbose(1);
 
 	opterr = 0;
 	while ((ch = getopt(argc, argv, "A:C:L:c:dfl:nu::Y:y:")) != -1)
@@ -140,7 +134,6 @@ main(int argc, char *argv[])
 			break;
 		case 'd':
 			daemonize = 0;
-			log_perror = 1;
 			break;
 		case 'f':
 			daemonize = 0;
@@ -151,7 +144,6 @@ main(int argc, char *argv[])
 		case 'n':
 			daemonize = 0;
 			cftest = 1;
-			log_perror = 1;
 			break;
 		case 'u':
 			udpsockmode = 1;
@@ -180,7 +172,7 @@ main(int argc, char *argv[])
 	while (argc > 0) {
 		struct interface_info *tmp = calloc(1, sizeof(*tmp));
 		if (!tmp)
-			error("calloc");
+			fatalx("calloc");
 		strlcpy(tmp->name, argv[0], sizeof(tmp->name));
 		tmp->next = interfaces;
 		interfaces = tmp;
@@ -196,7 +188,7 @@ main(int argc, char *argv[])
 
 	time(&cur_time);
 	if (!readconf())
-		error("Configuration file errors encountered");
+		fatalx("Configuration file errors encountered");
 
 	if (cftest)
 		exit(0);
@@ -207,10 +199,10 @@ main(int argc, char *argv[])
 	if (rdomain != -1)
 #ifdef __OpenBSD__
 		if (setrtable(rdomain) == -1)
-			error("setrtable (%m)");
+			fatal("setrtable");
 #else
 		if (setfib(rdomain) == -1)
-			error("setfib (%m)");
+			fatal("setfib");
 #endif
 
 	if (syncsend || syncrecv) {
@@ -222,18 +214,21 @@ main(int argc, char *argv[])
 	if (daemonize)
 		daemon(0, 0);
 
+	log_init(0, LOG_DAEMON);	/* stop logging to stderr */
+	log_setverbose(0);
+
 	if ((pw = getpwnam("_dhcp")) == NULL)
-		error("user \"_dhcp\" not found");
+		fatalx("user \"_dhcp\" not found");
 
 	/* don't go near /dev/pf unless we actually intend to use it */
 	if ((abandoned_tab != NULL) ||
 	    (changedmac_tab != NULL) ||
 	    (leased_tab != NULL)){
 		if (pipe(pfpipe) == -1)
-			error("pipe (%m)");
+			fatal("pipe");
 		switch (pfproc_pid = fork()){
 		case -1:
-			error("fork (%m)");
+			fatal("fork");
 			/* NOTREACHED */
 			exit(1);
 		case 0:
@@ -256,17 +251,17 @@ main(int argc, char *argv[])
 
 #ifdef __OpenBSD__
 	if (chroot(_PATH_VAREMPTY) == -1)
-		error("chroot %s: %m", _PATH_VAREMPTY);
+		fatal("chroot %s", _PATH_VAREMPTY);
 #else
 	if (chroot("/var/empty") == -1)
-		error("chroot %s: %m", "/var/empty");
+		fatal("chroot /var/empty");
 #endif
 	if (chdir("/") == -1)
-		error("chdir(\"/\"): %m");
+		fatal("chdir(\"/\")");
 	if (setgroups(1, &pw->pw_gid) ||
 	    setresgid(pw->pw_gid, pw->pw_gid, pw->pw_gid) ||
 	    setresuid(pw->pw_uid, pw->pw_uid, pw->pw_uid))
-		error("can't drop privileges: %m");
+		fatal("can't drop privileges");
 
 #ifdef __OpenBSD__
 	if (udpsockmode) {
@@ -290,7 +285,8 @@ usage(void)
 {
 	extern char *__progname;
 
-	fprintf(stderr, "usage: %s [-dfn] [-A abandoned_ip_table]", __progname);
+	fprintf(stderr, "usage: %s [-dfn] [-A abandoned_ip_table]",
+	    __progname);
 	fprintf(stderr, " [-C changed_ip_table]\n");
 	fprintf(stderr, "\t[-c config-file] [-L leased_ip_table]");
 	fprintf(stderr, " [-l lease-file] [-u[bind_address]]\n");
@@ -315,13 +311,13 @@ lease_pinged(struct iaddr from, u_int8_t *packet, int length)
 	lp = find_lease_by_ip_addr(from);
 
 	if (!lp) {
-		note("unexpected ICMP Echo Reply from %s", piaddr(from));
+		log_info("unexpected ICMP Echo Reply from %s", piaddr(from));
 		return;
 	}
 
 	if (!lp->state && !lp->releasing) {
-		warning("ICMP Echo Reply for %s arrived late or is spurious.",
-		    piaddr(from));
+		log_warnx("ICMP Echo Reply for %s arrived late or is "
+		    "spurious.", piaddr(from));
 		return;
 	}
 
@@ -334,9 +330,9 @@ lease_pinged(struct iaddr from, u_int8_t *packet, int length)
 	 *     and something answered, so we don't release it.
 	 */
 	if (lp->releasing) {
-		warning("IP address %s answers a ping after sending a release",
-		    piaddr(lp->ip_addr));
-		warning("Possible release spoof - Not releasing address %s",
+		log_warnx("IP address %s answers a ping after sending a "
+		    "release", piaddr(lp->ip_addr));
+		log_warnx("Possible release spoof - Not releasing address %s",
 		    piaddr(lp->ip_addr));
 		lp->releasing = 0;
 	} else {
