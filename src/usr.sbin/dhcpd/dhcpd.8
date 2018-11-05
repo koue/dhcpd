@@ -1,4 +1,4 @@
-.\"	$OpenBSD: dhcpd.8,v 1.27 2015/03/13 19:58:41 jmc Exp $
+.\"	$OpenBSD: dhcpd.8,v 1.29 2017/08/29 08:20:18 jmc Exp $
 .\"
 .\" Copyright (c) 1995, 1996 The Internet Software Consortium.
 .\" All rights reserved.
@@ -36,7 +36,7 @@
 .\" see ``http://www.isc.org/''.  To learn more about Vixie
 .\" Enterprises, see ``http://www.vix.com''.
 .\"
-.Dd $Mdocdate: March 13 2015 $
+.Dd $Mdocdate: August 29 2017 $
 .Dt DHCPD 8
 .Os
 .Sh NAME
@@ -57,8 +57,7 @@
 .Op Ar if0 Op Ar ... ifN
 .Ek
 .Sh DESCRIPTION
-The Internet Software Consortium DHCP Server,
-.Nm dhcpd ,
+.Nm
 implements the Dynamic Host Configuration Protocol (DHCP) and the
 Internet Bootstrap Protocol (BOOTP).
 DHCP allows hosts on a TCP/IP network to request and be assigned IP addresses,
@@ -194,28 +193,14 @@ in production, this option should be used
 .Em only
 for testing database files in a non-production environment.
 .It Fl d
-Force
+Do not daemonize.
+If this option is specified,
 .Nm
-to log to
-.Ar stderr .
-This can be useful for debugging, and also at sites where a complete log of
-all dhcp activity must be kept, but
-.Xr syslogd 8
-is not reliable or otherwise cannot be used.
-Normally,
-.Nm
-will log all output using the
-.Xr syslog 3
-function with the log facility set to
-.Dv LOG_DAEMON .
+will run in the foreground and log to
+.Em stderr .
 .It Fl f
-Run
-.Nm
-as a foreground process, rather than allowing it to run as a daemon in the
-background.
-This is useful when running
-.Nm
-under a debugger, or when running it out of inittab on System V systems.
+An alias for
+.Fl d .
 .It Fl L Ar leased_ip_table
 When an address is leased
 .Nm
@@ -526,11 +511,13 @@ DHCPD lease file.
 .Sh AUTHORS
 .An -nosplit
 .Nm
-was written by
+is based on software from the Internet Software Consortium,
+written by
 .An Ted Lemon Aq Mt mellon@vix.com
 under a contract with Vixie Labs.
-.Pp
-The current implementation was reworked by
+The current implementation was reworked for
+.Ox
+by
 .An Henning Brauer Aq Mt henning@openbsd.org .
 .Sh BUGS
 We realize that it would be nice if one could send a

@@ -1,4 +1,4 @@
-/*	$OpenBSD: dhcpd.h,v 1.55 2016/10/06 16:12:43 krw Exp $ */
+/*	$OpenBSD: dhcpd.h,v 1.66 2017/08/04 02:01:46 rob Exp $ */
 
 /*
  * Copyright (c) 1995, 1996, 1997, 1998, 1999
@@ -54,11 +54,6 @@ struct iaddr {
 	unsigned char iabuf[16];
 };
 
-struct iaddrlist {
-	struct iaddrlist *next;
-	struct iaddr addr;
-};
-
 #define DEFAULT_HASH_SIZE	97
 
 struct hash_bucket {
@@ -76,25 +71,6 @@ struct hash_table {
 struct option_data {
 	int len;
 	u_int8_t *data;
-};
-
-struct string_list {
-	struct string_list *next;
-	char *string;
-};
-
-/* A name server, from /etc/resolv.conf. */
-struct name_server {
-	struct name_server *next;
-	struct sockaddr_in addr;
-	time_t rcdate;
-};
-
-/* A domain search list element. */
-struct domain_search_list {
-	struct domain_search_list *next;
-	char *domain;
-	time_t rcdate;
 };
 
 /* A dhcp packet and the pointers to its option values. */
@@ -223,6 +199,7 @@ struct group {
 	int use_lease_addr_for_default_route;
 	int authoritative;
 	int always_reply_rfc1048;
+	int echo_client_id;
 
 	struct tree_cache *options[256];
 };
@@ -266,109 +243,10 @@ struct class {
 	struct group *group;
 };
 
-/* DHCP client lease structure... */
-struct client_lease {
-	struct client_lease *next;		/* Next lease in list. */
-	time_t expiry, renewal, rebind;		/* Lease timeouts. */
-	struct iaddr address;			/* Address being leased. */
-	char *server_name;			/* Name of boot server. */
-	char *filename;				/* File to boot. */
-	struct string_list *medium;		/* Network medium. */
-
-	unsigned int is_static : 1;	/* If set, lease is from config file. */
-	unsigned int is_bootp: 1;	/* If set, lease was aquired with BOOTP. */
-
-	struct option_data options[256];	/* Options supplied with lease. */
-};
-
 /* privsep message. fixed length for easy parsing */
 struct pf_cmd {
 	struct in_addr ip;
 	u_int32_t type;
-};
-
-/* Possible states in which the client can be. */
-enum dhcp_state {
-	S_REBOOTING,
-	S_INIT,
-	S_SELECTING,
-	S_REQUESTING,
-	S_BOUND,
-	S_RENEWING,
-	S_REBINDING
-};
-
-/* Configuration information from the config file... */
-struct client_config {
-	struct option_data defaults[256]; /* Default values for options. */
-	enum {
-		ACTION_DEFAULT,		/* Use server value if present,
-					   otherwise default. */
-		ACTION_SUPERSEDE,	/* Always use default. */
-		ACTION_PREPEND,		/* Prepend default to server. */
-		ACTION_APPEND		/* Append default to server. */
-	} default_actions[256];
-
-	struct option_data send_options[256]; /* Send these to server. */
-	u_int8_t required_options[256]; /* Options server must supply. */
-	u_int8_t requested_options[256]; /* Options to request from server. */
-	int requested_option_count;	/* Number of requested options. */
-	time_t timeout;			/* Start to panic if we don't get a
-					   lease in this time period when
-					   SELECTING. */
-	time_t initial_interval;	/* All exponential backoff intervals
-					   start here. */
-	time_t retry_interval;		/* If the protocol failed to produce
-					   an address before the timeout,
-					   try the protocol again after this
-					   many seconds. */
-	time_t select_interval;		/* Wait this many seconds from the
-					   first DHCPDISCOVER before
-					   picking an offered lease. */
-	time_t reboot_timeout;		/* When in INIT-REBOOT, wait this
-					   long before giving up and going
-					   to INIT. */
-	time_t backoff_cutoff;		/* When doing exponential backoff,
-					   never back off to an interval
-					   longer than this amount. */
-	struct string_list *media;	/* Possible network media values. */
-	char *script_name;		/* Name of config script. */
-	enum { IGNORE, ACCEPT, PREFER } bootp_policy;
-					/* Ignore, accept or prefer BOOTP
-					   responses. */
-	struct string_list *medium;	/* Current network medium. */
-
-	struct iaddrlist *reject_list;	/* Servers to reject. */
-};
-
-/* Per-interface state used in the dhcp client... */
-struct client_state {
-	struct client_lease *active;		  /* Currently active lease. */
-	struct client_lease *new;			       /* New lease. */
-	struct client_lease *offered_leases;	    /* Leases offered to us. */
-	struct client_lease *leases;		/* Leases we currently hold. */
-	struct client_lease *alias;			     /* Alias lease. */
-
-	enum dhcp_state state;		/* Current state for this interface. */
-	struct iaddr destination;		    /* Where to send packet. */
-	u_int32_t xid;					  /* Transaction ID. */
-	u_int16_t secs;			    /* secs value from DHCPDISCOVER. */
-	time_t first_sending;			/* When was first copy sent? */
-	time_t interval;	      /* What's the current resend interval? */
-	struct string_list *medium;		   /* Last media type tried. */
-
-	struct dhcp_packet packet;		    /* Outgoing DHCP packet. */
-	int packet_length;	       /* Actual length of generated packet. */
-
-	struct iaddr requested_address;	    /* Address we would like to get. */
-
-	struct client_config *config;	    /* Information from config file. */
-
-	char **scriptEnv;  /* Client script env */
-	int scriptEnvsize; /* size of the env table */
-
-	struct string_list *env;	       /* Client script environment. */
-	int envc;			/* Number of entries in environment. */
 };
 
 /* Information about each network interface. */
@@ -390,8 +268,6 @@ struct interface_info {
 
 	struct ifreq *ifp;		/* Pointer to ifreq struct. */
 
-	/* Only used by DHCP client code. */
-	struct client_state *client;
 	int noifmedia;
 	int errors;
 	int dead;
@@ -399,12 +275,6 @@ struct interface_info {
 	int is_udpsock;
 	ssize_t (*send_packet)(struct interface_info *, struct dhcp_packet *,
 	    size_t, struct in_addr, struct sockaddr_in *, struct hardware *);
-};
-
-struct hardware_link {
-	struct hardware_link *next;
-	char name[IFNAMSIZ];
-	struct hardware address;
 };
 
 struct dhcpd_timeout {
@@ -421,20 +291,6 @@ struct protocol {
 	void *local;
 };
 
-/* Bitmask of dhcp option codes. */
-typedef unsigned char option_mask[16];
-
-/* DHCP Option mask manipulation macros... */
-#define OPTION_ZERO(mask)	(memset (mask, 0, 16))
-#define OPTION_SET(mask, bit)	(mask[bit >> 8] |= (1 << (bit & 7)))
-#define OPTION_CLR(mask, bit)	(mask[bit >> 8] &= ~(1 << (bit & 7)))
-#define OPTION_ISSET(mask, bit)	(mask[bit >> 8] & (1 << (bit & 7)))
-#define OPTION_ISCLR(mask, bit)	(!OPTION_ISSET (mask, bit))
-
-/* An option occupies its length plus two header bytes (code and
-    length) for every 255 bytes that must be stored. */
-#define OPTION_SPACE(x)		((x) + 2 * ((x) / 255 + 1))
-
 #define _PATH_DHCPD_CONF	"/etc/dhcpd.conf"
 #define _PATH_DHCPD_DB		"/var/db/dhcpd.leases"
 #define _PATH_DEV_PF		"/dev/pf"
@@ -445,6 +301,11 @@ typedef unsigned char option_mask[16];
 
 /* External definitions... */
 
+/* parse.c */
+extern int warnings_occurred;
+int	parse_warn(char *, ...) __attribute__ ((__format__ (__printf__, 1,
+	    2)));
+
 /* options.c */
 void	 parse_options(struct packet *);
 void	 parse_option_buffer(struct packet *, unsigned char *, int);
@@ -454,22 +315,12 @@ char	*pretty_print_option(unsigned int, unsigned char *, int, int, int);
 void	 do_packet(struct interface_info *, struct dhcp_packet *, int,
 	    unsigned int, struct iaddr, struct hardware *);
 
-/* errwarn.c */
-extern int warnings_occurred;
-void	error(char *, ...) __attribute__ ((__format__ (__printf__, 1, 2)));
-int	warning(char *, ...) __attribute__ ((__format__ (__printf__, 1, 2)));
-int	note(char *, ...) __attribute__ ((__format__ (__printf__, 1, 2)));
-int	debug(char *, ...) __attribute__ ((__format__ (__printf__, 1, 2)));
-int	parse_warn(char *, ...) __attribute__ ((__format__ (__printf__, 1, 2)));
-
 /* dhcpd.c */
 extern time_t		cur_time;
 extern struct group	root_group;
 
 extern u_int16_t	server_port;
 extern u_int16_t	client_port;
-extern int		log_priority;
-extern int		log_perror;
 
 extern char		*path_dhcpd_conf;
 extern char		*path_dhcpd_db;
@@ -517,8 +368,8 @@ time_t			 parse_timestamp(FILE *);
 struct lease		*parse_lease_declaration(FILE *);
 void			 parse_address_range(FILE *, struct subnet *);
 time_t			 parse_date(FILE *);
-unsigned char		*parse_numeric_aggregate(FILE *, unsigned char *, int *,
-			    int, int, int);
+unsigned char		*parse_numeric_aggregate(FILE *, unsigned char *,
+			    int *, int, int, int);
 void			 convert_num(unsigned char *, char *, int, int);
 
 /* tree.c */
@@ -650,11 +501,9 @@ void assemble_hw_header(struct interface_info *, unsigned char *,
     int *, struct hardware *);
 void assemble_udp_ip_header(struct interface_info *, unsigned char *,
     int *, u_int32_t, u_int32_t, unsigned int, unsigned char *, int);
-ssize_t decode_hw_header(struct interface_info *, unsigned char *,
-    int, struct hardware *);
-ssize_t decode_udp_ip_header(struct interface_info *, unsigned char *,
-    int, struct sockaddr_in *, int);
-u_int32_t	checksum(unsigned char *, unsigned, u_int32_t);
+ssize_t decode_hw_header(unsigned char *, u_int32_t, struct hardware *);
+ssize_t decode_udp_ip_header(unsigned char *, u_int32_t, struct sockaddr_in *);
+u_int32_t	checksum(unsigned char *, u_int32_t, u_int32_t);
 u_int32_t	wrapsum(u_int32_t);
 
 /* icmp.c */
@@ -669,7 +518,6 @@ void pf_kill_state(int, struct in_addr);
 size_t atomicio(ssize_t (*)(int, void *, size_t), int, void *, size_t);
 #define vwrite (ssize_t (*)(int, void *, size_t))write
 void pfmsg(char, struct lease *);
-extern struct syslog_data sdata;
 
 /* udpsock.c */
 void udpsock_startup(struct in_addr);

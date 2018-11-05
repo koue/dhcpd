@@ -1,8 +1,8 @@
-# $OpenBSD: Makefile,v 1.5 2014/07/11 09:42:27 yasuoka Exp $
+# $OpenBSD: Makefile,v 1.7 2017/04/12 19:19:11 krw Exp $
 
 .include <bsd.own.mk>
 
-SRCS=	bootp.c confpars.c db.c dhcp.c dhcpd.c bpf.c packet.c errwarn.c \
+SRCS=	bootp.c confpars.c db.c dhcp.c dhcpd.c bpf.c packet.c log.c \
 	dispatch.c print.c memory.c options.c inet.c conflex.c parse.c \
 	alloc.c tables.c tree.c hash.c convert.c icmp.c pfutils.c sync.c \
 	udpsock.c
@@ -13,3 +13,6 @@ LDADD+=-lcrypto
 CFLAGS+=-Wall
 
 .include <bsd.prog.mk>
+CFLAGS+=-Wstrict-prototypes -Wmissing-prototypes
+CFLAGS+=-Wmissing-declarations
+CFLAGS+=-Wshadow -Wpointer-arith -Wcast-qual

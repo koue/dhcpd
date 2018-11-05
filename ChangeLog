@@ -1,0 +1,2265 @@
+2018-07-03 12:51  krw
+
+	* usr.sbin/dhcpd/dhcpd.conf.5: Tighten up description of
+	  echo-client-id statement to make it clearer. Explicitly mention
+	  that older printers may require it to be set to false, as this
+	  has come up on the mailing lists a few times.
+
+	  Original diff from sthen@.
+
+	  ok jmc@
+
+2018-03-01 20:48  jmc
+
+	* usr.sbin/dhcpd/dhcpd.conf.5: consistently spell "IPsec"; from raf
+	  czlonka
+
+	  note that this is only part of raf's original diff: the rest is
+	  for code.  although i'm sure the diff itself is correct, i don;t
+	  judge myself qualified to decide whether those changes are
+	  warranted.  still, i'd appreciate at least a reply to raf's diff
+	  from another developer (yay! nay!)
+
+2018-02-28 19:49  matthieu
+
+	* usr.sbin/dhcpd/dhcp-options.5: Better documentation of the
+	  classless-static-routes option.  ok krw@, tweaks by jmc@
+
+2017-08-29 08:20  jmc
+
+	* usr.sbin/dhcpd/dhcpd.8: do not claim that this is isc dhcpd (but
+	  retain credit); issue pointed out by miod
+
+	  ok krw miod
+
+2017-08-04 02:01  rob
+
+	* usr.sbin/dhcpd/dhcpd.h: Remove unused structs and defines, from
+	  Edgar Pettijohn. ok jca@
+
+2017-07-31 19:00  rob
+
+	* usr.sbin/dhcpd/dhcpd.h: Removed unused struct, also noticed by
+	  Edgar Pettijohn. ok jca@, krw@
+
+2017-07-11 10:28  reyk
+
+	* usr.sbin/dhcpd/dhcp.c: Handle DHCPINFORM from clients behind a
+	  DHCP relay.
+
+	  The dhcpinform() function has assumed that ciaddr matches the
+	  packet's IP source address and didn't consider a relay, such as
+	  dhcrelay(8) - indicated by giaddr, has forwarded the request.
+
+	  Tested by landry@ OK krw@
+
+2017-06-28 14:07  jmc
+
+	* usr.sbin/dhcpd/dhcpd.conf.5: remove a contradictory sentence (see
+	  dhcp-options(5)) which claims hostnames which resolve to muliple
+	  ip addresses are all forwarded to the client;
+
+	  issue reported by edgar pettijohn; discussed with dhcpd's de
+	  facto maintainer, kenneth westerback;
+
+2017-05-03 02:22  jsg
+
+	* usr.sbin/dhcpd/: conflex.c, confpars.c, dhcp.c, dhcpd.conf.5,
+	  dhcpd.h, dhctoken.h: OpenBSD 6.1 errata 001, May 2, 2017
+
+	  dhcpd(8) unconditionally echoed client identifier. Add parameter
+	  "echo-client-id" to allow this behaviour to be turned off.
+
+2017-04-26 21:07  jmc
+
+	* usr.sbin/dhcpd/dhcpd.conf.5: remove some repetitive text chunks;
+	  ok krw
+
+2017-04-24 18:05  jmc
+
+	* usr.sbin/dhcpd/dhcpd.conf.5: a little more consistent text for
+	  previous; ok krw
+
+2017-04-24 14:58  krw
+
+	* usr.sbin/dhcpd/: conflex.c, confpars.c, dhcp.c, dhcpd.conf.5,
+	  dhcpd.h, dhctoken.h: Add 'echo-client-id' statment, so that RFC
+	  6842 behaviour can be turned off for those clients and networks
+	  that find it impossible to move past RFC 2131. Modelled on the
+	  same statement in recent ISC versions, though we default to 'on'
+	  (a.k.a. RFC 6842) rather that 'off' (a.k.a. RFC 2131).
+
+	  Problems reported by Bastien Durel (Xerox Phaser 6022 printer)
+	  and Bryan Vyhmeister (Hon Hai Precision router) via misc@.
+	  Thanks!
+
+2017-04-19 05:36  natano
+
+	* usr.sbin/dhcpd/bpf.c: Switch base tools from /dev/bpf0 to
+	  /dev/bpf. Now that /dev/bpf has been around for two releases, it
+	  should be safe to do so.
+
+	  ok bluhm deraadt sthen tb yasuoka
+
+2017-04-18 13:59  krw
+
+	* usr.sbin/dhcpd/: bpf.c, dhcpd.h, packet.c: Tweak parameters to
+	  decode_*, add a check or two, and thus gain most of the sanity
+	  improvements reyk@ recently put into dhcrelay to ensure no more
+	  than the captured packet is processed.
+
+2017-04-18 13:44  krw
+
+	* usr.sbin/dhcpd/bpf.c: After 11 years of pondering about it I
+	  think that brookdavis@freebsd.org had it correct. Don't
+	  BPF_WORDALIGN() the value for the number of bytes read() into the
+	  buffer. This could theoretically cause the processing of 1 - 3
+	  more bytes than were read.
+
+2017-04-17 18:31  krw
+
+	* usr.sbin/dhcpd/: dhcpd.h, packet.c: Use better types for
+	  checksum() parameters and local var from dhclient. Eliminate
+	  extra prototypes for checksum() and wrapsum().
+
+2017-04-13 14:59  krw
+
+	* usr.sbin/dhcpd/dhcpd.h: Remove a bunch of obsolete, unused and
+	  irrelevant DHCP client types, fields, and enums.
+
+2017-04-12 19:19  krw
+
+	* usr.sbin/dhcpd/Makefile: Inspired by recent dhcrelay changes,
+	  bring in stricter CFLAGS!
+
+2017-04-12 19:17  krw
+
+	* usr.sbin/dhcpd/dispatch.c: One 'foo' per function is enough.
+	  Rename one to eliminate shadowing.
+
+2017-04-12 19:12  krw
+
+	* usr.sbin/dhcpd/: conflex.c, confpars.c: Add missing function
+	  prototypes. Mark kw_cmp() as static like all its friends.
+
+2017-03-21 12:06  bluhm
+
+	* usr.sbin/dhcpd/log.c: From a syslog perspective it does not make
+	  sense to log fatal and warn with the same severity.  Switch
+	  log_warn() to LOG_ERR and keep fatal() at LOG_CRIT.  OK reyk@
+	  florian@
+
+2017-02-16 00:24  krw
+
+	* usr.sbin/dhcpd/: dhcpd.c, dhcpd.h, parse.c: Bring parse_warn()
+	  into the log.[ch] 21st century and adopt the "^" placement logic
+	  from dhclient.
+
+2017-02-15 19:36  krw
+
+	* usr.sbin/dhcpd/dhcpd.8: Adopt the common verbiage other log.[ch]
+	  daemons use to describe '-d'.
+
+	  Point out that dhcpd(8) -f is an alias for -d.
+
+2017-02-13 23:04  krw
+
+	* usr.sbin/dhcpd/: bpf.c, confpars.c, db.c, dhcp.c, dhcpd.c,
+	  dhcpd.h, dispatch.c, icmp.c, memory.c, parse.c, pfutils.c,
+	  sync.c: Eliminate pointless'%m' (a.k.a. hand rolled strerror())
+	  by using fatal() and log_warn(). Zap a couple of explicit
+	  'syslog()' calls.
+
+2017-02-13 22:33  krw
+
+	* usr.sbin/dhcpd/: bootp.c, conflex.c, confpars.c, dhcp.c, dhcpd.c,
+	  dhcpd.h, dispatch.c, icmp.c, memory.c, options.c, parse.c,
+	  sync.c, udpsock.c: Adjust some long lines.
+
+2017-02-13 21:53  krw
+
+	* usr.sbin/dhcpd/: dispatch.c, pfutils.c, sync.c, udpsock.c: Do the
+	  strerror() elimination dance with log_warnx() -> log_warn(),
+	  fatalx() -> fatal() and even a couple of fprintf(stderr) ->
+	  log_warn().
+
+2017-02-13 19:19  krw
+
+	* usr.sbin/dhcpd/errwarn.c: Banished to the attic.
+
+2017-02-13 19:13  krw
+
+	* usr.sbin/dhcpd/: Makefile, alloc.c, bootp.c, bpf.c, confpars.c,
+	  db.c, dhcp.c, dhcpd.c, dhcpd.h, dispatch.c, hash.c, icmp.c,
+	  log.c, log.h, memory.c, options.c, packet.c, parse.c, pfutils.c,
+	  sync.c, tables.c, tree.c, udpsock.c: Switch from old errwarn.c
+	  logging to shiny new log.[ch].
+
+	  ok benno@
+
+2017-02-11 16:12  krw
+
+	* usr.sbin/dhcpd/: dhcpd.h, errwarn.c, parse.c: Move
+	  parse_warning() into parse.c to prepare to replace errwarn.c with
+	  standard daemon log.[ch].
+
+	  ok mpi@
+
+2017-02-04 22:21  jca
+
+	* usr.sbin/dhcpd/dhcpd.conf.5: Appropriately replace "domain name"
+	  with "hostname"; less misleading
+
+	  tb@ was initially concerned about next-server but there were more
+	  similar occurrences.	Simple solution - "hostname" - proposed by
+	  jmc@ ok from both
+
+2016-11-15 10:49  mestre
+
+	* usr.sbin/dhcpd/: dispatch.c, icmp.c, options.c, pfutils.c:
+	  Replace bzero(3) with memset(3)
+
+	  "Looks good" to deraadt@
+
+2016-10-24 21:05  krw
+
+	* usr.sbin/dhcpd/dhcp.c: Compare server-identifiers and reject
+	  packets only *after* applying value specified in dhcpd.conf.
+
+	  i.e. don't assume it is always the primary address of the
+	  interface the packet arrived on.
+
+	  Fixes issues with redundant dhcpd servers and CARP'd interfaces.
+
+	  Issue reported and fix tested by Johan Huldtgren
+
+2016-10-21 11:34  mestre
+
+	* usr.sbin/dhcpd/sync.c: - Use memset(*b, 0, len) instead of
+	  bzero(*b, len) - Use explicit_bzero(3) instead of bzero(3) to
+	  clean temporary HMAC
+
+	  OK krw@
+
+2016-10-12 13:36  krw
+
+	* usr.sbin/dhcpd/dhcp.c: client_identifier is not a string so using
+	  strlen() on it is inappropriate. Which is why
+	  client_identifier_len exists.
+
+	  Replace copy&pasted strlen() with client_identifier_len.
+
+	  Symptoms (crash) and cause (bad c&p) spotted by sthen@.
+
+	  tested & ok sthen@
+
+2016-10-10 15:53  krw
+
+	* usr.sbin/dhcpd/dhcp.c: Stop pretending we use RFC 3046/Option
+	  82/Relay Agent Information.
+
+	  RFC 3042 says servers that do not understand the option will not
+	  echo it.
+
+	  Plus, our desultory attempt at echoing was almost certainly
+	  broken for OFFERs (use after free of packet data) and not even
+	  attempted for NACKs.
+
+	  ok millert@
+
+2016-10-06 16:12  krw
+
+	* usr.sbin/dhcpd/: dhcp.c, dhcpd.h: Add support for RFC 6842. RFC
+	  2131 said the server MUST NOT echo the client-identifier value.
+	  RFC 6842 says the server MUST echo it.
+
+	  Echoing the information disambiguates packets for relays and
+	  clients when chaddr is 0. Similar to what dhcpv6 does.
+
+2016-10-05 00:50  krw
+
+	* usr.sbin/dhcpd/dhcp.c: Use consistant idiom (intermediate
+	  variable 'i' rather than repeated uses of very long #define
+	  names) to access option data in nak_lease() and ack_lease().
+
+	  Shortens a lot of lines, which allows a number of line splits to
+	  be eliminates.
+
+	  Makes some upcoming diffs easier to integrate.
+
+	  No intentional functional change.
+
+2016-10-04 22:47  krw
+
+	* usr.sbin/dhcpd/: dhcp.c, options.c, sync.c, sync.h: Zap stray
+	  whitespace.
+
+2016-08-27 01:26  guenther
+
+	* usr.sbin/dhcpd/: db.c, dhcpd.c, dispatch.c, parse.c: Pull in
+	  <time.h> for one or more of gmtime, strftime, strptime, time,
+	  timegm, and tzset
+
+	  ok deraadt@
+
+2016-08-17 00:55  krw
+
+	* usr.sbin/dhcpd/confpars.c: KNF and clean up many comments.
+
+2016-08-17 00:38  krw
+
+	* usr.sbin/dhcpd/confpars.c: Ansify function definitions.
+
+	  Diff from Edgar Pettijohn.
+
+2016-08-05 14:02  krw
+
+	* usr.sbin/dhcpd/: dhcp.c, dhcpd.h, options.c: Don't leak the
+	  option data of non-DHCPINFORM messages received on the udp
+	  socket.
+
+	  Found by David Carlier.
+
+	  ok yasuoka@
+
+2016-05-28 07:00  natano
+
+	* usr.sbin/dhcpd/bpf.c: Replace the /dev/bpf* open loop with a
+	  plain open("/dev/bpf0", ...).  ok deraadt jca
+
+2016-04-27 10:16  mestre
+
+	* usr.sbin/dhcpd/: dhcpd.c, udpsock.c: Remove pledge(2)'s that are
+	  called before chroot(2) since in the near future this will be
+	  forbidden. The remaining pledge(2) calls after chroot(2) are
+	  still kept.
+
+	  OK semarie@ "it is time now"
+
+2016-04-04 14:00  mestre
+
+	* usr.sbin/dhcpd/udpsock.c: In udpsockmode codepath dhcpd.c had the
+	  promise route for pledge(2) but it was missing from
+	  udpsock_startup() (udpsock.c) which happens earlier and therefore
+	  would abort the program due to SIOCGIFADDR ioctl(2) on
+	  udpsock_handler
+
+	  Reported by Philip Higgins <phil ! unita.com.au>
+
+	  OK tb@
+
+2016-02-08 02:06  krw
+
+	* usr.sbin/dhcpd/udpsock.c: sys/param.h -> sys/types.h. No need to
+	  drag in nitems() only to use it once on an array declared iov[1].
+	  Just use '1'.
+
+	  ok yasuoka@
+
+2016-02-07 10:24  jsg
+
+	* usr.sbin/dhcpd/memory.c: avoid a use after free when parsing
+	  address ranges from a config ok krw@
+
+2016-02-06 23:50  krw
+
+	* usr.sbin/dhcpd/: alloc.c, bootp.c, bpf.c, conflex.c, confpars.c,
+	  convert.c, db.c, dhcp.c, dhcpd.c, dhcpd.h, dispatch.c, errwarn.c,
+	  hash.c, icmp.c, inet.c, memory.c, options.c, packet.c, parse.c,
+	  pfutils.c, print.c, sync.c, tables.c, tree.c, udpsock.c:
+	  Eliminate #include inside *.h files and include only needed
+	  headers in each *.c file.
+
+	  Inspired by mention of header silliness by Edgar Pettijohn and
+	  mmcc@ on tech@.
+
+2016-02-03 14:48  krw
+
+	* usr.sbin/dhcpd/packet.c: be very careful accepting packets via
+	  bpf. First check that the fixed part of the IP header is
+	  completely present before using its header length field.  Then
+	  use the data in the IP header to ensure the entire IP packet is
+	  present. Then check that the entire UDP header is present. Then
+	  use the data in the UDP header to ensure all the data it thinks
+	  is present is actually present.
+
+	  Started when tj@ and a few others noticed ISC "DHCP
+	  CVE-2015-8605: UDP payload length not properly checked".
+
+	  ok sthen@ henning@
+
+2015-12-21 21:39  mmcc
+
+	* usr.sbin/dhcpd/: alloc.c, dhcp.c, tree.c: remove NULL-checks
+	  before free()
+
+2015-12-14 01:08  krw
+
+	* usr.sbin/dhcpd/: dhcpd.c, udpsock.c: pledge.
+
+	  Diff from Ricardo Mestre. Test report from sthen@.
+
+2015-12-11 14:09  krw
+
+	* usr.sbin/dhcpd/parse.c: Actually use default-lease-time,
+	  max-lease-time, bootp-lease-length specified in dhcpd.conf.
+	  Broken in -r1.18.
+
+	  Problem noted by Arne on bugs@, identical fix independently
+	  developed by Serguey Parkhomovsky.
+
+2015-09-14 20:06  schwarze
+
+	* usr.sbin/dhcpd/dhcp-options.5: Avoid .Ns right after .Pf, it's
+	  pointless.  In some cases, do additional cleanup in the immediate
+	  vicinity.
+
+2015-08-20 22:39  deraadt
+
+	* usr.sbin/dhcpd/: confpars.c, dhcp.c, dispatch.c: stdlib.h is in
+	  scope; do not cast malloc/calloc/realloc* ok millert krw
+
+2015-07-27 18:48  sobrado
+
+	* usr.sbin/dhcpd/dhcpd.leases.5: use file system path (.Pa)
+	  semantic markup macros where appropriate.
+
+2015-06-27 14:29  krw
+
+	* usr.sbin/dhcpd/: options.c, tables.c: Do not send routers (option
+	  3) or static routes (option 33) when classless static routes
+	  (option 121, 249) are sent. RFC 3442 says servers SHOULD NOT send
+	  those options.
+
+	  This avoids confusing clients who fail to ignore the routers or
+	  static routes options in the presence of classless static routes
+	  options. RFC 3442 says clients MUST ignore those options.
+
+	  Incorrect behavior in MS and Linux clients reported by Juan on
+	  misc@.
+
+	  ok millert@
+
+2015-06-11 12:48  schwarze
+
+	* usr.sbin/dhcpd/dhcpd.conf.5: Don't do manual whitespace
+	  adjustments inside semantic macros, rather do it before the
+	  macros, and get rid of cargo cult escaping.  Both to make the
+	  code more robust and less ugly, no output change.  Ugly code
+	  reported by TJ at mrsk dot me.  OK jmc@
+
+2015-06-02 16:02  sobrado
+
+	* usr.sbin/dhcpd/dhcp-options.5: write Mobile IP{,v6} in a
+	  consistent way, as given in RFCs 5944 and 6275.
+
+	  ok jmc@
+
+2015-05-18 17:51  krw
+
+	* usr.sbin/dhcpd/: conflex.c, confpars.c, parse.c: Tweak parsing so
+	  that hostnames starting with 0-9 are accepted.
+
+	  Reported long ago by matthieu@. Also Jacob Berkman via the lists.
+
+	  Tests and suggestions from Jacob and Matthieu.
+
+2015-05-02 14:29  krw
+
+	* usr.sbin/dhcpd/conflex.c: Hoist common assignments out of a
+	  series of if/if-else statements in get_token(). Simplifies code
+	  and shrinks future diff.
+
+	  No intentional functional change.
+
+2015-05-02 12:37  krw
+
+	* usr.sbin/dhcpd/conflex.c: Correct switch between current and
+	  previous line buffers when encountering a carriage return in the
+	  input.
+
+	  Found by jsg@ a long time ago in a respository far, far away.
+
+2015-04-15 12:40  krw
+
+	* usr.sbin/dhcpd/dhcp.c: Avoid using inet_ntoa() twice in a single
+	  printf() parameter list by caching the results from excess
+	  inet_ntoa() calls before doing the printf(). Should improve
+	  usefullness (?) of DHCPRELEASE log entries by actually printing
+	  ciaddr and giaddr correctly when dhcprelays stand between servers
+	  and clients.
+
+	  Looks good to dlg@.
+
+2015-03-13 19:58  jmc
+
+	* usr.sbin/dhcpd/: dhcpd.8, dhcpd.conf.5: remove the first comma
+	  from constructs like ", and," and ", or,": you can use "and" and
+	  "or" to join sentence clauses, and you can use commas, but both
+	  hinders reading;
+
+2015-02-10 23:06  krw
+
+	* usr.sbin/dhcpd/: dhcpd.c, memory.c: Keep track of the last time
+	  we scanned the leases to find expired ones that needed to be
+	  booted out of the pf table process. This avoids removing the same
+	  addess over and over.
+
+	  Problem report and original diff from Bertrand Provost.
+
+2015-02-07 10:49  krw
+
+	* usr.sbin/dhcpd/dhcpd.c: Close appropriate ends of pfpipe. Lets pf
+	  table process die when dhcpd does.
+
+	  Pointed out by Bertrand Provost.
+
+	  ok henning@
+
+2015-02-05 09:42  krw
+
+	* usr.sbin/dhcpd/pfutils.c: The pf table process should die if the
+	  pipe to the dhcpd process is closed. e.g. dhcpd has been killed.
+
+	  ok henning@
+
+2015-01-21 21:50  deraadt
+
+	* usr.sbin/dhcpd/pfutils.c: Include <netinet/in.h> before
+	  <net/pfvar.h>.  In a future change when ports is ready,
+	  <net/pfvar.h> will stop including a pile of balony.
+
+2015-01-16 06:40  deraadt
+
+	* usr.sbin/dhcpd/: dhcpd.c, pfutils.c, sync.c, udpsock.c: Replace
+	  <sys/param.h> with <limits.h> and other less dirty headers where
+	  possible.  Annotate <sys/param.h> lines with their current
+	  reasons.  Switch to PATH_MAX, NGROUPS_MAX, HOST_NAME_MAX+1,
+	  LOGIN_NAME_MAX, etc.	Change MIN() and MAX() to local definitions
+	  of MINIMUM() and MAXIMUM() where sensible to avoid pulling in the
+	  pollution.  These are the files confirmed through binary
+	  verification.  ok guenther, millert, doug (helped with the
+	  verification protocol)
+
+2014-11-22 18:15  deraadt
+
+	* usr.sbin/dhcpd/dhcpd.8: /dev/random has created the same effect
+	  as /dev/arandom (and /dev/urandom) for quite some time.  Mop up
+	  the last few, by using /dev/random where we actually want it, or
+	  not even mentioning arandom where it is irrelevant.
+
+2014-11-15 14:41  bentley
+
+	* usr.sbin/dhcpd/dhcpd.leases.5: Reduce instances of `` '' in
+	  manuals.
+
+	  troff displays these as typographic quotes, but nroff
+	  implementations almost always print them literally, which rarely
+	  has the intended effect with modern fonts, even in stock xterm.
+
+	  These uses of `` '' can be replaced either with more semantic
+	  alternatives or with Dq, which prints typographic quotes in a
+	  UTF-8 locale (but will automatically fall back to `` '' in an
+	  ASCII locale).
+
+	  improvements and ok schwarze@
+
+2014-11-11 19:59  krw
+
+	* usr.sbin/dhcpd/dhcp.c: Tweak the the DHCPACK to DHCPINFORM log
+	  entry so that it is less threatening and more informative.
+
+	  e.g.
+
+	  DHCPACK on <null address> to 5c:51:4f:56:81:c3 via em0
+
+	  changes to
+
+	  DHCPACK to 192.168.19.62 (3c:97:0e:0c:0c:d7) via em0
+
+	  Issue noted and diff tested by Marc Peters. Thanks!
+
+	  ok yasuoka@ millert@
+
+2014-11-10 13:03  krw
+
+	* usr.sbin/dhcpd/dhcp.c: Typo: consitent -> consistent.
+
+2014-10-25 03:23  lteo
+
+	* usr.sbin/dhcpd/: bpf.c, icmp.c, packet.c: Remove unnecessary
+	  netinet/in_systm.h include.
+
+	  ok millert@
+
+2014-10-08 04:26  deraadt
+
+	* usr.sbin/dhcpd/dispatch.c: use reallocarray() to cope with
+	  multiplicative integer overflow; ok doug
+
+2014-08-18 20:58  tobias
+
+	* usr.sbin/dhcpd/packet.c: Variables to count seen packets should
+	  be unsigned.
+
+	  ok krw@
+
+2014-08-11 18:39  tobias
+
+	* usr.sbin/dhcpd/dhcp.c: validate len field for proper length, not
+	  just "not zero."
+
+	  ok krw@
+
+2014-07-29 18:21  tobias
+
+	* usr.sbin/dhcpd/: options.c: Fix memory exhaustion occurring on
+	  DHCP options with 0 length.
+
+	  halex@ and krw@ pointed out that a NULL check before free can go,
+	  too.
+
+	  ok deraadt@, halex@, krw@, jasper@
+
+2014-07-28 16:45  tobias
+
+	* usr.sbin/dhcpd/options.c: Fix memory exhaustion occurring on DHCP
+	  options with 0 length.
+
+	  halex@ and krw@ pointed out that a NULL check before free can go,
+	  too.
+
+	  ok deraadt@, halex@, krw@
+
+2014-07-26 07:48  tobias
+
+	* usr.sbin/dhcpd/packet.c: Fix very hard to reach DoS attack
+	  vector, which would involve more than 8 billion network packets.
+	  Mixture of many many malformed and proper packets could result in
+	  a division by zero.
+
+	  ok krw@
+
+2014-07-11 21:20  deraadt
+
+	* etc/examples/dhcpd.conf: Move more files into the examples
+	  directory...
+
+2014-07-11 16:48  yasuoka
+
+	* usr.sbin/dhcpd/: dhcp.c, dhcpd.h: Fix DHCPINFORM not to lookup
+	  the lease database, not to fill the yiaddr field and not to
+	  include the lease time parameters.
+
+	  ok krw
+
+2014-07-11 13:53  jmc
+
+	* usr.sbin/dhcpd/dhcpd.8: tweak previous; ok krw yasuoka
+
+2014-07-11 09:44  yasuoka
+
+	* usr.sbin/dhcpd/dhcpd.8: Fix typo
+
+2014-07-11 09:42  yasuoka
+
+	* usr.sbin/dhcpd/: Makefile, bootp.c, bpf.c, dhcp.c, dhcpd.8,
+	  dhcpd.c, dhcpd.h, options.c, udpsock.c: Add -u option to bind UDP
+	  port as a socket to answer DHCPINFORM from the clients on non
+	  ethernet interfaces (eg. tun(4) or pppx(4)).
+
+	  input krw ok krw
+
+2014-07-09 13:42  yasuoka
+
+	* usr.sbin/dhcpd/confpars.c: Fix classless-{ms-,}static-routes to
+	  comply RFC 3442.  Number of octets should be changed by
+	  corresponding to the prefix length.  And 0 should be allowed for
+	  the prefix length.  Also fix white spaces.
+
+	  Based on diff from Yuuichi Someya.
+
+	  ok krw
+
+2014-06-11 16:45  pelikan
+
+	* usr.sbin/dhcpd/: bootp.c, memory.c: Prettify & refactor, no
+	  functional change.
+
+	  ok beck
+
+2014-05-07 13:20  pelikan
+
+	* usr.sbin/dhcpd/: dhcpd.c, dhcpd.h, icmp.c: back out the previous
+	  ICMP simplifying diff, it caused livelocks.
+
+	  reported by Mikolaj Kucharski, thanks! ok krw
+
+2014-05-05 18:30  pelikan
+
+	* usr.sbin/dhcpd/: dhcpd.c, dhcpd.h, dispatch.c: Don't call the
+	  BOOTP handler indirectly.
+
+	  ok krw
+
+2014-05-05 18:27  pelikan
+
+	* usr.sbin/dhcpd/: dhcpd.c, dhcpd.h, icmp.c: Don't call the ICMP
+	  handler indirectly + clean up a bit.
+
+	  ok krw
+
+2014-02-08 18:12  krw
+
+	* usr.sbin/dhcpd/db.c: Create dhclient lease files and dhcpd lease
+	  files with permissions 0640, rather than 0000 and 0664
+	  respectively.
+
+	  ok kettenis@ tedu@
+
+2014-01-21 07:52  jmc
+
+	* usr.sbin/dhcpd/dhcp-options.5: sort;
+
+2014-01-21 03:07  krw
+
+	* usr.sbin/dhcpd/: confpars.c, dhcp-options.5, dhcp.h, tables.c:
+	  Add parsing for options 121 (classless-static-routes) and 249
+	  (classless-ms-static-routes). dhcpd can now specify and serve
+	  these options and dhclient can recognize and use supersede, etc.
+	  statements on them.
+
+	  Based on a diff from Stefan Rinke. Thanks!
+
+2014-01-03 16:21  jmc
+
+	* usr.sbin/dhcpd/: dhcp-options.5, dhcpd.8, dhcpd.conf.5,
+	  dhcpd.leases.5: consistent Nd lines for the various dhcp bits;
+	  help/ok krw
+
+2013-12-18 20:37  krw
+
+	* usr.sbin/dhcpd/parse.c: Two 'break;'s in a row seems excessive.
+
+2013-12-05 22:31  krw
+
+	* usr.sbin/dhcpd/: conflex.c, dhcp.h, dhctoken.h, parse.c: Stop
+	  pretending we still support FDDI or token ring hardware types.
+
+	  idea ok deraadt@ matthew@
+
+2013-12-05 21:03  krw
+
+	* usr.sbin/dhcpd/packet.c: Nuke local #define ETHER_HEADER_SIZE and
+	  use the identical value'd ETHER_HDR_LEN from if_ether.h. dhclient
+	  change ok matthew@ as part of larger diff.
+
+2013-11-22 04:47  deraadt
+
+	* usr.sbin/dhcpd/parse.c: unsigned char cast for some ctype calls
+	  ok krw
+
+2013-10-21 12:02  krw
+
+	* usr.sbin/dhcpd/confpars.c: Use the provided netmask on the subnet
+	  value provided in 'subnet' statements, allowing subsequent
+	  comparisions with interface addresses to always work properly.
+
+	  Problem noted, fix tested & ok dlg@
+
+2013-10-19 18:15  schwarze
+
+	* usr.sbin/dhcpd/: dhcpd.conf.5, dhcpd.leases.5: fix a few obvious
+	  .Ar markup errors (unfortunately, there are many more) found
+	  while working on mandoc apropos
+
+2013-10-18 15:19  krw
+
+	* usr.sbin/dhcpd/: dispatch.c, pfutils.c, sync.c: Scattering a few
+	  bcopy()'s around source using mostly memcpy() is just asking for
+	  confusion. Replace bcopy()'s with memcpy()'s.
+
+2013-10-18 13:44  krw
+
+	* usr.sbin/dhcpd/: memory.c, sync.c: %d -> %lld, add (long long)
+	  cast to time_t variables. Make guenther and gcc happier. Found
+	  while looking at something else for dlg@.
+
+2013-07-16 11:13  schwarze
+
+	* usr.sbin/dhcpd/: dhcp-options.5, dhcpd.8, dhcpd.conf.5,
+	  dhcpd.leases.5: use .Mt for email addresses; from Jan Stary <hans
+	  at stare dot cz>; ok jmc@
+
+2013-07-16 10:26  jmc
+
+	* usr.sbin/dhcpd/: dhcpd.conf.5, dhcpd.leases.5: simplify some icky
+	  macros; from Jan Stary, tweaked by me
+
+2013-07-15 07:56  jmc
+
+	* usr.sbin/dhcpd/dhcp-options.5: remove non-standard section: it
+	  does nothing for this page;
+
+2013-07-14 19:44  jmc
+
+	* usr.sbin/dhcpd/dhcpd.8: merge the relevant bits of dhcp(8) into
+	  dhclient(8) and dhcpd(8), removing traces of dhcp(8)... i'm about
+	  to remove that file, since it's essentially useless. holding off
+	  for a little, in case my commit is greeted with howls.
+
+	  help/ok krw
+
+2013-07-11 15:15  jmc
+
+	* usr.sbin/dhcpd/: dhcp-options.5, dhcpd.8: update (or add)
+	  STANDARDS; help/ok krw
+
+2013-06-04 13:00  krw
+
+	* usr.sbin/dhcpd/conflex.c: Fix "\" escape handling in
+	  read_string().
+
+	  Problem noted, fix tested and ok sthen@.
+
+2013-05-16 19:24  gerhard
+
+	* usr.sbin/dhcpd/dispatch.c: poll(2) might have slept for an
+	  arbitrary amount of time. We should update 'cur_time' after
+	  poll(2) returns.
+
+	  ok otto
+
+2013-04-22 15:02  krw
+
+	* usr.sbin/dhcpd/sync.c: When sync'ing, look for lease by hwaddr
+	  and then ipaddr. Not hwaddr twice. Simplify logic. Fixes loops
+	  while sync'ing for sthen@.
+
+	  Spotted by & fixed tested by sthen@.
+
+2013-04-20 01:18  krw
+
+	* usr.sbin/dhcpd/db.c: Remove extraneous "\n" erroneously
+	  introduced by move to strftime().
+
+	  Spotted by sthen@.
+
+2013-04-19 21:25  sthen
+
+	* usr.sbin/dhcpd/dispatch.c: Log (at LOG_INFO) which interfaces
+	  dhcpd listens to and (as suggested by krw) their address. As
+	  dhcpd uses BPF, it's not possible to find this information out
+	  from fstat/netstat.  ok krw@
+
+2013-04-17 19:26  krw
+
+	* usr.sbin/dhcpd/: db.c, dhcpd.h, parse.c: Replace hand-rolled date
+	  printing/parsing code with strftime()/strptime().  Use timegm()
+	  because all the dates are in UTC and the 'standard' routines
+	  can't handle the truth.
+
+	  Remove some 'time_t is 32bits' assumptions.
+
+	  Print 'UTC' at the end of dates in the leases file, rather than
+	  mentioning that all dates are UTC in a comment at the top of the
+	  file.
+
+	  Feedback and suggestions from guenther@, kettenis@, otto@, tedu@,
+	  deraadt@.
+
+2013-04-13 18:08  krw
+
+	* usr.sbin/dhcpd/: sync.c, sync.h: Give struct dhcp_synctlv_lease
+	  fields a prefix (lv_) as the fields in other structs have.
+	  Reduces potential for confusion with fields of same name but
+	  different types in leases. Use consistent variable name. No
+	  change to executable.
+
+2013-04-13 16:40  krw
+
+	* usr.sbin/dhcpd/db.c: Don't dance with errno, just check the
+	  return values of fprintf(), fputs() and fputc() to see if a
+	  failure occurred. Add a couple of missing checks. Replace putc()
+	  with fputc(). Shorter, nicer code.  No functional change.
+
+	  ok fgsch@
+
+2013-04-12 00:27  krw
+
+	* usr.sbin/dhcpd/sync.c: Unbreak lease synchronization by making
+	  the sync header contain the correct packet length even when
+	  paddding is present. Previously the HMAC calculated by the
+	  receiver would not be based on the whole packet.
+
+	  Problem noted and essentially identical diffs from Kapetanakis
+	  Giannis via misc@ and then Johan Ymerson via bugs@.
+
+2013-04-05 19:31  krw
+
+	* usr.sbin/dhcpd/: bpf.c, dhcp.c: send_packet() and writev() return
+	  ssize_t, not int. Use correct type to store the returned value.
+	  From dhill.
+
+2013-03-22 23:45  krw
+
+	* usr.sbin/dhcpd/dhcp.c: RFC 2131 4.3.1 seems clear that a server
+	  MUST NOT include the client-identifier option in OFFER or ACK
+	  messages. So stop doing so.
+
+2013-03-11 15:43  krw
+
+	* usr.sbin/dhcpd/dhcp.c: RFC 2131 says don't ACK any REQUEST
+	  messages that contain a server-identifier option that specifies a
+	  different dhcp server.
+
+	  So don't.
+
+	  Pointed put and fix tested by Andy via bugs@
+
+2013-02-14 22:06  krw
+
+	* usr.sbin/dhcpd/dhcp.c: Obey RFC 2131 and when the broadcast flag
+	  is set send reply back via udp broadcast and link-local
+	  broadcast. Not udp broadcast to link address of client. Fixes at
+	  least some switches who use the broadcast flag.
+
+	  Bug submitted by Andy via bugs@, and fix tested by same. Thanks!
+
+	  ok beck@
+
+2013-02-03 21:04  krw
+
+	* usr.sbin/dhcpd/: bpf.c, dhcpd.h, packet.c: Remove unused (a.k.a.
+	  always passed NULL) parameter 'data' from decode_udp_ip_header()
+	  and the useless check of it. Part of original diff from pelikan
+	  about udp length errors.
+
+2013-01-13 18:38  krw
+
+	* usr.sbin/dhcpd/dhcp.h: Tweak whitespace, add missing #defines,
+	  use DHO_RELAY_AGENT_INFORMATION rather than
+	  DHO_DHCP_AGENT_OPTIONS. Makes these files identical again.
+
+2013-01-13 18:24  krw
+
+	* usr.sbin/dhcpd/dhcp.h: Add DHO_ defines for all known options.
+	  Use same names as ISC where available. No functional change.
+
+2013-01-05 12:34  krw
+
+	* usr.sbin/dhcpd/packet.c: Check UDP length field for short as well
+	  as long values. Fixes a dhcpd crash when a UDP packet arrives
+	  saying it has 0 length.
+
+	  Spotted by Martin Pelikan, who also noted it was fixed a while
+	  ago in ISC DHCP 3.0b2p17.
+
+	  Fix tested by Martin. Thanks!
+
+2013-01-03 16:35  krw
+
+	* usr.sbin/dhcpd/dhcp-options.5: Don't mention the (incorrect)
+	  option number of autoproxy-script, since we don't mention the
+	  option numbers for other options.
+
+	  Noticed by Marcus Merighi vi tech@.
+
+2013-01-02 16:41  krw
+
+	* usr.sbin/dhcpd/dhcp-options.5: Rework to simply list all options
+	  in alphabetical order. Functional groupings and sub-ordering them
+	  in RFC/numerical order did not make for a readable man page.
+
+	  Add a number of missing option descriptions. Started by man page
+	  update from Marcus Merighi via tech@. Thanks!
+
+	  Further fixes and tweaks by jmc@. ok jmc@.
+
+2012-09-26 16:19  jmc
+
+	* usr.sbin/dhcpd/: dhcp-options.5, dhcpd.conf.5, dhcpd.leases.5:
+	  last stage of rfc changes, using consistent Rs/Re blocks, and
+	  moving the references into a STANDARDS section;
+
+2012-08-29 18:13  jmc
+
+	* usr.sbin/dhcpd/dhcp-options.5: update the rfc references; ok krw
+
+2011-11-12 15:39  krw
+
+	* usr.sbin/dhcpd/dispatch.c: Zero option processing stack storage
+	  to prevent stack garbage that happens to look like options from
+	  being processed as options when truncated packets received.
+
+	  Potential problem pointed out by mikeb@, from a couple of NIST
+	  reports (CVE-2011-2748 and CVE-2011-2749).
+
+2010-12-23 17:38  claudio
+
+	* usr.sbin/dhcpd/sync.c: Use the provided note() and warning()
+	  functions of dhcpd instead of calling syslog_r() directly -- this
+	  make -d work as expected.  OK reyk@, stsp@, deraadt@
+
+2010-12-15 14:34  claudio
+
+	* usr.sbin/dhcpd/dhcpd.c: We run getopt() twice to know if
+	  dhcp-sync is used. To make this work both getopt calls need the
+	  same optstring or the first getopt() call will end before parsing
+	  all arguments.  Problem found and fixed supplied by m_athias OK
+	  millert@, deraadt@
+
+2010-11-19 08:00  ajacoutot
+
+	* usr.sbin/dhcpd/dispatch.c: Prevent dhcpd(8) from trying to listen
+	  on interfaces that don't have a valid broadcast (e.g. pflog0).
+
+	  "no objection" krw@, ok claudio@
+
+2010-10-08 15:43  sobrado
+
+	* usr.sbin/dhcpd/dhcpd.8: use the right capitalization in the Nd
+	  strings.
+
+	  ok jmc@
+
+2010-07-03 04:44  guenther
+
+	* usr.sbin/dhcpd/: dhcpd.c, dispatch.c: Fix the naming of
+	  interfaces and variables for rdomains and rtables and make it
+	  possible to bind sockets (including listening sockets!) to
+	  rtables and not just rdomains.  This changes the name of the
+	  system calls, socket option, and ioctl.  After building with this
+	  you should remove the files /usr/share/man/cat2/[gs]etrdomain.0.
+
+	  Since this removes the existing [gs]etrdomain() system calls, the
+	  libc major is bumped.
+
+	  Written by claudio@, criticized^Wcritiqued by me
+
+2010-04-19 12:22  claudio
+
+	* usr.sbin/dhcpd/: dhcpd.c, dhcpd.h, dispatch.c: If interfaces are
+	  specified, get their rdomain and bind dhcpd into the same domain
+	  with setrdomain(). This allows to run dhcpd on multiple rdomains.
+	  OK krw@
+
+2010-04-02 17:03  zinovik
+
+	* usr.sbin/dhcpd/confpars.c: plug memory leaks on error paths
+
+	  joint work with krw@
+
+	  ok krw@, stsp@
+
+2010-03-29 22:22  krw
+
+	* usr.sbin/dhcpd/dhcp.c: Initialize 'flags' field of tree_cache
+	  stack variables to 0. Paranoia.
+
+2010-03-29 22:09  krw
+
+	* usr.sbin/dhcpd/dhcp.c: Always put server id in NAK's to requests.
+	  Some router/switches need this, as reported in PR#6339.
+
+	  Fix tested by submitter, Marcel Widget, who also supplied the
+	  diff that I tweaked.
+
+	  ok beck@
+
+2010-03-27 14:11  krw
+
+	* usr.sbin/dhcpd/: confpars.c, memory.c, parse.c, sync.c:
+	  malloc/strlcpy -> strdup. Use consistent idiom.
+
+	  ok (as part of larger diff) blambert@ kettenis@ stsp@ zinovik@
+
+2010-01-03 18:37  deraadt
+
+	* usr.sbin/dhcpd/sync.c: unused prototype
+
+2010-01-02 04:21  krw
+
+	* usr.sbin/dhcpd/: alloc.c, confpars.c, dhcp.c, dhcpd.h,
+	  dispatch.c, options.c, tree.c: Eliminate all uses of dmalloc()
+	  where the returned pointer is checked for NULL and a specific
+	  error/warning issued. Add two such manual warning/error checks
+	  and kill those dmalloc calls. And then there were none, so kill
+	  dmalloc(). Whew.
+
+2010-01-01 20:46  krw
+
+	* usr.sbin/dhcpd/: alloc.c, dhcp.c, options.c, tree.c: Eliminate
+	  all uses of dfree() where the pointer is either dereferenced
+	  immediately before the use or the pointer is checked for NULL
+	  before the call. And then there were none, so kill dfree().
+
+2010-01-01 20:30  krw
+
+	* usr.sbin/dhcpd/: alloc.c, dhcpd.h, hash.c, memory.c, tree.c:
+	  Wrappers around a wrapper around free() are of no more use than
+	  wrappers around wrappers around calloc().
+
+	  The purpose of the free() wrapper is to generate an error message
+	  when free'ing NULL. But free_hash_bucket(), free_lease(), and
+	  free_tree() are all called immediately after dereferencing the
+	  pointer to be freed. Thus the error message will never be issued.
+
+2010-01-01 19:10  krw
+
+	* usr.sbin/dhcpd/: alloc.c, dhcpd.h, hash.c: A slightly more
+	  complex calloc() wrapper wrapper, new_hash_table(), bites the
+	  dust.
+
+2010-01-01 18:01  krw
+
+	* usr.sbin/dhcpd/: alloc.c, dhcpd.h, tree.c: Another calloc()
+	  wrapper wrapper, new_tree(), bites the dust.
+
+2010-01-01 08:02  krw
+
+	* usr.sbin/dhcpd/: alloc.c, confpars.c, dhcpd.h: Two more calloc()
+	  wrapper wrappers, new_shared_network() and new_subnet(), bite the
+	  dust.
+
+2010-01-01 06:25  krw
+
+	* usr.sbin/dhcpd/: alloc.c, dhcpd.h, hash.c, memory.c: Single-use
+	  wrapper functions that just call a wrapper function around
+	  calloc() and end up producing duplicate error messages are just
+	  confusing.
+
+	  Eliminate new_hash_bucket(), new_lease(), new_leases(),
+	  new_group().
+
+2010-01-01 02:38  krw
+
+	* usr.sbin/dhcpd/dhcpd.h: Delete unused declarations.
+
+2010-01-01 01:47  krw
+
+	* usr.sbin/dhcpd/: alloc.c, dhcpd.h, memory.c: Plug a potential
+	  leak similar to the one parfait spotted and Theo fixed.
+
+	  Eliminate the function new_class() by expanding the only use
+
+	  Use strdup() and calloc() rather than manually simulating them.
+
+	  No functional change.
+
+2009-12-14 22:12  mpf
+
+	* usr.sbin/dhcpd/bpf.c: Just like dhclient(8), we use the bpf
+	  filter drop to prevent us from sending an icmp error along with
+	  the dhcp reply.  OK henning@
+
+2009-12-10 01:22  deraadt
+
+	* usr.sbin/dhcpd/memory.c: plug memory leak, spotted by parfait; ok
+	  krw
+
+2009-09-14 10:24  schwarze
+
+	* usr.sbin/dhcpd/dhcpd.8: fix typo;  ok jmc@ also reported upstream
+	  to dhcp dash bugs at isc dot org
+
+2009-09-01 08:42  reyk
+
+	* usr.sbin/dhcpd/: conflex.c, dhcp.c, dhcp.h, dhcpd.conf.5,
+	  dhctoken.h, parse.c, tables.c: Echo back the Relay Agent
+	  Information option if present (RFC 3046).  Also add support for
+	  the "ipsec-tunnel" hardware type as described in RFC 3456.
+
+	  ok henning@ krw@ (but needs more testing from others)
+
+2009-08-01 03:00  fgsch
+
+	* usr.sbin/dhcpd/dhcpd.conf.5: subnet-number and netmask could be
+	  ip addresses only.  krw@ jmc@ ok
+
+2009-02-01 10:48  sobrado
+
+	* usr.sbin/dhcpd/dhcpd.conf.5: "Ethernet" is a family of networking
+	  technologies developed at Xerox PARC, not a generic name.  we
+	  must use the right capitalization for this term.
+
+	  ok jmc@
+
+2009-01-13 21:11  sthen
+
+	* usr.sbin/dhcpd/: dhcp-options.5, tables.c: add option 150,
+	  voip-configuration-server, as an array of IP addresses;
+	  draft-raj-dhc-tftp-addr-option-05, req by Michael van der
+	  Westhuizen.
+
+	  ok henning, krw, dlg
+
+2008-11-16 06:04  brad
+
+	* usr.sbin/dhcpd/options.c: rev 1.24 Sigh. Some clients can't
+	  handle three DHO_PAD options holding space for an unused overload
+	  option. Noticed by mk@ when netbooting his G4 mac mini.
+
+	  So compact the options by shifting them over the unused option
+	  and filling the end by DHO_PAD.
+
+	  rev 1.23 Some clients don't parse a DHO_DHCP_OPTION_OVERLOAD
+	  option the way I expected. They object if there are no bits set
+	  in the option value. So just use DHO_PAD in the reserved space
+	  unless at least one of the bits is set.
+
+	  rev 1.22 bzero' the option buffer with the correct buffer size.
+	  this fixes incomplete buffer initialization and possible
+	  incorrect option handling.
+
+2008-11-14 02:00  krw
+
+	* usr.sbin/dhcpd/options.c: Sigh. Some clients can't handle three
+	  DHO_PAD options holding space for an unused overload option.
+	  Noticed by mk@ when netbooting his G4 mac mini.
+
+	  So compact the options by shifting them over the unused option
+	  and filling the end by DHO_PAD.
+
+	  Tested by mk@.
+
+2008-11-08 01:42  krw
+
+	* usr.sbin/dhcpd/options.c: Some clients don't parse a
+	  DHO_DHCP_OPTION_OVERLOAD option the way I expected. They object
+	  if there are no bits set in the option value. So just use DHO_PAD
+	  in the reserved space unless at least one of the bits is set.
+
+	  Various versions tested by Tobias Ulmer on OpenSolaris, matthieu@
+	  on busybox's DHCP client, and Uwe Dippel on Solaris. All of which
+	  failed before.
+
+2008-09-15 20:38  claudio
+
+	* usr.sbin/dhcpd/: bpf.c, dispatch.c, icmp.c, sync.c: When checking
+	  if a syscall like open(), ioctl() or writev() failed compare
+	  directly against -1 and do not use a < 0 test. OK henning@
+
+2008-09-10 00:22  reyk
+
+	* usr.sbin/dhcpd/options.c: bzero' the option buffer with the
+	  correct buffer size.	this fixes incomplete buffer initialization
+	  and possible incorrect option handling.
+
+	  Thanks to Nick Bender ok krw@ deraadt@
+
+2008-07-21 16:51  millert
+
+	* usr.sbin/dhcpd/dhcp.c: Initial stab at DHCPINFORM support.  OK
+	  phessler@
+
+2008-05-30 05:58  deraadt
+
+	* usr.sbin/dhcpd/sync.c: correct size of iov[];
+	  ralf.horstmann@gmx.de
+
+2008-05-29 19:02  deraadt
+
+	* usr.sbin/dhcpd/dhcpd.c: appease stupid stupid gcc; ok millert
+
+2008-05-25 22:36  millert
+
+	* usr.sbin/dhcpd/dhcpd.c: Don't error out if dhcpd-sync does not
+	  exist in /etc/services and no sync options were specified.  OK
+	  deraadt@
+
+2008-05-11 08:50  beck
+
+	* usr.sbin/dhcpd/sync.c:
+	  fix sync.c to not puke if sync_lease called without sync_init.
+	  from henric.
+
+2008-05-08 14:15  deraadt
+
+	* usr.sbin/dhcpd/: sync.c, sync.h: Insert pad blocks after
+	  sub-messages to keep the structures aligned to 16 byte boundaries
+	  for maximum portability (somewhat similar to CMSG's) ok beck
+
+2008-05-08 07:28  beck
+
+	* usr.sbin/dhcpd/: dhcpd.c, sync.c: this should really only be in
+	  one file.
+
+2008-05-08 05:38  beck
+
+	* usr.sbin/dhcpd/: sync.c, sync.h: don't break dhcpd when not using
+	  synch mechanisms..
+
+2008-05-07 12:19  beck
+
+	* usr.sbin/dhcpd/: Makefile, dhcp.c, dhcpd.8, dhcpd.c, dhcpd.h,
+	  dispatch.c, errwarn.c, memory.c, sync.c, sync.h: Add
+	  synchronisation support for dhcpd - this allows for two dhcpd's
+	  with the same configuration to be run on the same net and they
+	  will keep their lease files/state in synch, and therefore
+	  allowing you to run redundant dhcpd's. Synchronization code
+	  stolen from spamd, uses an hmac key in /var/db/dhcpd.key if it
+	  exists.  ok krw@ deraadt@
+
+2008-04-16 00:36  krw
+
+	* usr.sbin/dhcpd/options.c: Redo/clarify the logic for storing
+	  options in the various buffers.
+
+	  While there, bail out quickly if no options can be stored, and
+	  avoid overflow buffers if building a bootp reply.
+
+	  Henning looked and didn't get upset. millert@ tested it for a few
+	  days and liked the look of it. canacar@ glanced at it.
+
+2008-04-04 22:44  dlg
+
+	* usr.sbin/dhcpd/tables.c: option 144 is commonly used for
+	  tftp-config-file.
+
+	  ok henning@ krw@
+
+2008-03-17 00:17  dlg
+
+	* usr.sbin/dhcpd/tables.c: option 252 is generally used to specify
+	  an autoproxy-script on a subnet.
+
+	  ok krw@ henning@
+
+2008-01-18 20:14  krw
+
+	* usr.sbin/dhcpd/: dhcpd.h, options.c: Call store_options() with
+	  correct cutoff values, i.e. ones not 7 bytes too large. Fixes a
+	  problem where a nicely crafted packet could crash dhcpd. Nuke a
+	  superfluous declaration of store_options() while here.
+
+	  Problem found and fix tested by Peter Hessler.
+
+	  ok beck@ millert@ henning@
+
+2007-12-30 13:38  sobrado
+
+	* usr.sbin/dhcpd/dhcpd.c: add missing space between argument names
+	  and ellipsis
+
+	  ok jmc@
+
+2007-12-23 21:54  jmc
+
+	* usr.sbin/dhcpd/dhcpd.conf.5: for "fixed-address", note that no
+	  lease is generated; after some discussion with krw, who hasn;t
+	  ok'd this diff, but we can change it if he doesn;t like it;
+
+	  started by mail from Max Hayden Chiz
+
+2007-12-23 21:52  jmc
+
+	* usr.sbin/dhcpd/pfutils.c: remove double word in comment;
+
+2007-10-29 16:51  krw
+
+	* usr.sbin/dhcpd/: dhcpd.h, options.c, tables.c: More tweaking of
+	  option processing, this time around the creation of the priority
+	  list. Add create_priority_list() and use it to consistantly merge
+	  mandatory, supplied and default option priority lists into a
+	  reliable and complete list of options sorted by priority.  No
+	  intended functional change other than ensuring all options
+	  available are returned.
+
+	  "looks good" henning@ "OK, fair enough" millert@
+
+2007-10-28 15:19  krw
+
+	* usr.sbin/dhcpd/tables.c: Remove duplicate DHO_HOST_NAME entry and
+	  add missing DHO_DHCP_USER_CLASS_ID entry to
+	  dhcp_option_default_priority_list[].	Reformat list of numbers at
+	  the end of dhcp_option_default_priority_list[] so it is easy to
+	  see which options are defined. No functional change.
+
+2007-10-27 14:47  krw
+
+	* usr.sbin/dhcpd/options.c: Rework option storing so the code is
+	  readable, and eliminate odd behaviour on several edge conditions.
+
+	  Feedback, suggestion & "I like the approach" millert@ "excellent"
+	  henning@.
+
+2007-10-21 13:12  krw
+
+	* usr.sbin/dhcpd/options.c: Take even more care to ensure the max
+	  message size is at least as large as the minimum IP MTU.
+
+	  ok canacar@ henning@ millert@
+
+2007-10-21 01:08  krw
+
+	* usr.sbin/dhcpd/options.c: Last bit of (planned) tidy up in
+	  cons_options(). Join some lines, delete some blank lines, add
+	  some other blank lines, move expressions so calculations done
+	  only once. Eliminate extraneous ++'s.
+
+	  No functional change.
+
+2007-10-21 00:39  krw
+
+	* usr.sbin/dhcpd/options.c: Tidy up, make usual case exit faster,
+	  eliminate variable. No functional change.
+
+	  ok beck@
+
+2007-10-19 15:52  krw
+
+	* usr.sbin/dhcpd/options.c: Make sure bufix is updated after
+	  copying options into the first overflow buffer. Actually use the
+	  second overflow buffer now that bufix is correct and the test for
+	  remaining options will work correctly.
+
+	  ok beck@
+
+2007-10-19 15:43  krw
+
+	* usr.sbin/dhcpd/options.c: Be a bit more paranoid and initialize
+	  all valid options buffers with DHO_PAD (a.k.a. 0). Eliminate
+	  manual DHO_PAD'ing after DHO_END is put into the buffer.
+
+	  ok beck@
+
+2007-10-19 15:34  krw
+
+	* usr.sbin/dhcpd/options.c: Fix obvious typos and write DHO_PAD and
+	  DHO_END into correct options overflow buffer. Spotted by canacar@
+	  and others.
+
+	  ok beck@
+
+2007-10-19 15:25  krw
+
+	* usr.sbin/dhcpd/options.c: Correct the value returned by
+	  cons_options in the case where overload buffers are used. It
+	  should reflect the end of the main options buffer rather than the
+	  start of the options copied into it.
+
+	  ok beck@
+
+2007-10-19 15:16  krw
+
+	* usr.sbin/dhcpd/options.c: Ensure that main_buffer_size is set to
+	  a value less than or equal to the size of the outgoing packet's
+	  options field. Spotted by canacar@.
+
+	  ok beck@
+
+2007-10-10 06:10  ckuethe
+
+	* usr.sbin/dhcpd/options.c: merge fix from current, prompted by
+	  deraadt. original commit message: "Minimum IP MTU" means what it
+	  says. Ensure that packets returned by dhcpd are the minimum size
+	  or larger no matter what the client thinks the minimum allowable
+	  size is. Found by Nahuel Riva and Gera Richarte.  Fix by
+	  millert@.
+
+2007-10-09 16:44  ckuethe
+
+	* usr.sbin/dhcpd/: options.c: merge fix from current, prompted by
+	  deraadt. original commit message: "Minimum IP MTU" means what it
+	  says. Ensure that packets returned by dhcpd are the minimum size
+	  or larger no matter what the client thinks the minimum allowable
+	  size is. Found by Nahuel Riva and Gera Richarte.  Fix by
+	  millert@.
+
+2007-10-09 03:17  krw
+
+	* usr.sbin/dhcpd/options.c: "Minimum IP MTU" means what it says.
+	  Ensure that packets returned by dhcpd are the minimum size or
+	  larger no matter what the client thinks the minimum allowable
+	  size is. Found by Nahuel Riva and Gera Richarte.  Fix by
+	  millert@.
+
+2007-10-06 15:45  ckuethe
+
+	* usr.sbin/dhcpd/pfutils.c: Allow the various pf table actions to
+	  operate independently. For example, "-L leased" wouldn't work
+	  without "-A abandoned".  testing help from merdely "i like"
+	  deraadt
+
+2007-07-24 15:31  stevesk
+
+	* usr.sbin/dhcpd/dhcpd.c: use 1 vs. -1 for true; ok henning@ krw@
+
+2007-05-31 19:20  jmc
+
+	* usr.sbin/dhcpd/: dhcp-options.5, dhcpd.8, dhcpd.conf.5,
+	  dhcpd.leases.5: convert to new .Dd format;
+
+2007-05-15 06:22  tedu
+
+	* usr.sbin/dhcpd/pfutils.c: use the correct fd for poll.  we're
+	  waiting on the pipe, not pf ok ckuethe deraadt
+
+2007-03-02 18:26  stevesk
+
+	* usr.sbin/dhcpd/dhcp.h: spaces and comment to sync to dhclient
+	  dhcp.h; no binary change
+
+2007-03-02 11:37  henning
+
+	* usr.sbin/dhcpd/errwarn.c: pull in spaces array overflow fixes
+	  from dhclient the code here is slightly different, but also has
+	  the overfow in both cases
+
+2007-02-26 00:49  stevesk
+
+	* usr.sbin/dhcpd/parse.c: don't leak memory, from dhclient; ok krw@
+
+2007-02-22 07:02  henning
+
+	* usr.sbin/dhcpd/dhcpd.h: another dead extern; Mark Lumsden
+	  <mark@cyodesigns.com>
+
+2007-02-18 21:19  henning
+
+	* usr.sbin/dhcpd/dhcpd.h: unused extern decl From: Mark Lumsden
+	  <mark@cyodesigns.com>
+
+2007-02-17 18:27  deraadt
+
+	* usr.sbin/dhcpd/dhcpd.c: -q flag is unused (old shared code from
+	  dhclient); spotted by mark@cyodesigns ok krw
+
+2007-02-17 13:32  jmc
+
+	* usr.sbin/dhcpd/: dhcpd.8, dhcpd.c: no code for -p, so remove from
+	  man page and usage(); confirmed by ckuethe; spotted by Mark
+	  Lumsden
+
+2007-02-06 21:12  stevesk
+
+	* usr.sbin/dhcpd/dhcpd.h: spaces
+
+2007-02-06 17:58  stevesk
+
+	* usr.sbin/dhcpd/dhcpd.h: remove some dangling function prototypes
+
+2007-02-01 22:39  krw
+
+	* usr.sbin/dhcpd/dhcp.h: Don't count ethernet as overhead for UDP
+	  packet constuction. Gives 14 more bytes of option space! A change
+	  ISC made a long time ago.
+
+	  ok stevesk@ (DHCP) canacar@ (bpf)
+
+2007-01-11 01:51  stevesk
+
+	* usr.sbin/dhcpd/dhcp.h: remove unused #define DHCP_MIN_LEN
+
+2007-01-04 19:12  stevesk
+
+	* usr.sbin/dhcpd/dhcpd.h: <sys/un.h> not needed
+
+2006-12-18 19:05  stevesk
+
+	* usr.sbin/dhcpd/dhctoken.h: align, no binary change
+
+2006-12-17 18:03  stevesk
+
+	* usr.sbin/dhcpd/: conflex.c, confpars.c, dhcpd.h, dhctoken.h:
+	  remove one-lease-per-client parameter which was never implemented
+	  (it doesn't do anything and is not documented); ok henning@
+
+2006-12-15 16:03  stevesk
+
+	* usr.sbin/dhcpd/dhcp.c: small KNF
+
+2006-12-15 14:09  stevesk
+
+	* usr.sbin/dhcpd/options.c: typo in comment
+
+2006-12-12 19:38  stevesk
+
+	* usr.sbin/dhcpd/: dispatch.c, options.c: remove unused #defines;
+	  no binary change
+
+2006-12-12 19:32  stevesk
+
+	* usr.sbin/dhcpd/dhcpd.h: <signal.h> not needed
+
+2006-12-11 23:40  stevesk
+
+	* usr.sbin/dhcpd/dhcpd.h: spaces
+
+2006-11-22 21:35  stevesk
+
+	* usr.sbin/dhcpd/parse.c: sync dhclient and dhcpd parse.c areas
+	  where we can.  mainly formatting, whitespace; ok henning@
+
+2006-11-22 19:10  stevesk
+
+	* usr.sbin/dhcpd/: dhcpd.c, dhcpd.h: small header cleanup: remove
+	  uneeded header use <foo.h> not "foo.h" for system include
+
+	  no binary change; ok henning@
+
+2006-11-22 18:07  stevesk
+
+	* usr.sbin/dhcpd/parse.c: fix some warning messages and comments in
+	  parse_date(); ok henning@
+
+2006-11-21 16:26  stevesk
+
+	* usr.sbin/dhcpd/dhcpd.h: remove unused #defines; remove duplicate
+	  #defines; remove DEBUG; remove useless comment; no need to #ifdef
+	  protect.
+
+	  no binary change; ok henning@
+
+2006-11-21 00:10  stevesk
+
+	* usr.sbin/dhcpd/dhcpd.h: re-order includes and eliminate
+	  duplicates, no binary change; ok henning@
+
+2006-11-20 19:14  stevesk
+
+	* usr.sbin/dhcpd/dhcpd.h: KNF (no space before '['); ok henning@
+
+2006-11-08 15:49  stevesk
+
+	* usr.sbin/dhcpd/dhcp-options.5: remove another irrelevant
+	  reference; ok jmc@
+
+2006-11-07 16:46  jmc
+
+	* usr.sbin/dhcpd/dhcp-options.5: remove some irrelevant references;
+	  spotted by stevesk ok henning stevesk
+
+2006-10-20 19:45  deraadt
+
+	* usr.sbin/dhcpd/pfutils.c: indent
+
+2006-08-10 01:51  brad
+
+	* usr.sbin/dhcpd/: memory.c: MFC: Fix by cloder@
+
+	  Fix a reliability issue in dhcpd where a DHCPDISCOVER packet with
+	  a 32-byte client identifier would cause dhcpd to mistakenly exit.
+	  From Debian bug 380273, affecting ISC dhcpd 2.x, upon which our
+	  dhcpd is based.
+
+	  ok cloder@
+
+2006-08-09 22:23  cloder
+
+	* usr.sbin/dhcpd/memory.c: Fix a reliability issue in dhcpd where a
+	  DHCPDISCOVER packet with a 32-byte client identifier would cause
+	  dhcpd to mistakenly exit. From Debian bug 380273, affecting ISC
+	  dhcpd 2.x, upon which our dhcpd is based.
+
+	  OK beck@
+
+2006-08-09 11:05  stevesk
+
+	* usr.sbin/dhcpd/dhcpd.8: typo in example config; ok henning@
+
+2006-06-14 20:19  jmc
+
+	* usr.sbin/dhcpd/: dhcpd.8, dhcpd.c: sort options;
+
+2006-06-14 14:58  ckuethe
+
+	* usr.sbin/dhcpd/: dhcpd.8, dhcpd.c, dhcpd.h, memory.c, pfutils.c:
+	  This diff allows dhcpd to put active leases into a pf table.
+	  Dhcpd will then periodically - based on the length of the
+	  shortest lease time - walk across all leases searching for
+	  expired leases which are then removed from the pf table.
+
+	  ok henning
+
+2006-06-14 14:49  ckuethe
+
+	* usr.sbin/dhcpd/: dhcp.c, dhcpd.h, memory.c, pfutils.c: Move the
+	  transmission of privsep messages into its own function. Wherever
+	  we might have conditionally sent a message, we now just call the
+	  pfmsg() function, and let it figure out whether the message
+	  should be sent or not.
+
+	  ok henning
+
+2006-06-14 14:44  ckuethe
+
+	* usr.sbin/dhcpd/pfutils.c: Avoid changing pf tables when table
+	  name is NULL ok henning
+
+2006-06-13 08:47  jmc
+
+	* usr.sbin/dhcpd/confpars.c: typo; from sstull ok ckuethe
+
+2006-06-01 06:06  ckuethe
+
+	* usr.sbin/dhcpd/dhcpd.c: Sort options in usage. From jmc.  ok
+	  henning@
+
+2006-05-31 14:40  ckuethe
+
+	* usr.sbin/dhcpd/pfutils.c: Missing $OpenBSD$ tag. Spotted by Masao
+	  Uebayashi.  ok henning@
+
+2006-05-31 09:05  jmc
+
+	* usr.sbin/dhcpd/dhcpd.8: - tidy up SYNOPSIS - sort options - +.Xr
+	  pf 4 ,
+
+2006-05-31 02:43  ckuethe
+
+	* usr.sbin/dhcpd/: Makefile, dhcp.c, dhcpd.8, dhcpd.c, dhcpd.h,
+	  memory.c, pfutils.c: This diff makes dhcpd able to manipulate pf
+	  tables on certain lease events.
+
+	  dhcpd is now able to place abandoned addresses into a table (to
+	  offer some protection against machines camping on an address) and
+	  remove them from the table if they are properly leased.
+
+	  When dhcpd assigns an IP to a new hardware address, it can remove
+	  that address from a table. This is for use with the overload
+	  table in pf; newly arrived machines will not be punished for the
+	  actions of a machine that went away.
+
+	  beck@ and krw@ liked previous versions of this, henning@ final ok
+
+2006-05-30 23:43  ckuethe
+
+	* usr.sbin/dhcpd/: dhcpd.h, dispatch.c: This patch renames dhcpd's
+	  "struct timeout" to "struct dhcpd_timeout" so as not to conflict
+	  with "struct timeout" from <sys/timeout.h>.  ok henning@
+
+2006-05-29 19:27  stevesk
+
+	* usr.sbin/dhcpd/dhcpd.conf.5: repair some broken indentation in an
+	  example; ok jmc@
+
+2006-05-27 19:52  krw
+
+	* usr.sbin/dhcpd/dispatch.c: Don't exit just because an interface
+	  has no subnet configured in dhcpd.conf. Just don't listen on that
+	  interface.
+
+	  Make warning messages textually consistant.
+
+	  tested & ok beck@
+
+2006-05-27 04:01  krw
+
+	* usr.sbin/dhcpd/dispatch.c: When an interface is ignored because
+	  it has no IP address, say so.  Don't just say 'not found". And
+	  always complain, not just when specific interfaces were
+	  requested.
+
+	  requested by and ok uwe@
+
+2006-05-11 01:19  krw
+
+	* usr.sbin/dhcpd/: dhcpd.c, dhcpd.h, dispatch.c: If a list of
+	  interfaces is supplied via the command line or dhcpd.interfaces
+	  then
+
+	  a) don't bother looking up information on interfaces that were
+	  not requested;
+
+	  b) don't exit if a requested interface is not found, just issue a
+	  warning message;
+
+	  c) exit if none of the interfaces were found.
+
+	  The command line for dhcpd shown in ps will continue to show
+	  requested but ignored interfaces.
+
+	  As usual with dhc* code, whack a bunch of unused states,
+	  constants, flags, etc. Since we only invoke discover_interfaces()
+	  with DISCOVER_SERVER, there is no need to keep track of other
+	  possibilities.
+
+2006-04-20 19:50  deraadt
+
+	* usr.sbin/dhcpd/conflex.c: list must be sorted
+
+2006-04-18 19:18  deraadt
+
+	* usr.sbin/dhcpd/: conflex.c, confpars.c, dhctoken.h, parse.c:
+	  cleanup keyword lookup for the lexer, and remove keywords not
+	  valid in either dhclient or dhcpd context; tested by many
+
+2006-03-16 15:44  claudio
+
+	* usr.sbin/dhcpd/: dhcp.c, dispatch.c: KNF. No binary change.
+
+2006-03-13 19:57  otto
+
+	* usr.sbin/dhcpd/: bootp.c, confpars.c, dhcp.c, tree.c: tiny bit of
+	  delinting; ok krw@
+
+2006-02-01 09:59  jmc
+
+	* usr.sbin/dhcpd/dhcp-options.5: NTP is described by RFC 1305, not
+	  1035; from michal f. hanula (freebsd docs/92629)
+
+2006-01-13 19:27  jmc
+
+	* usr.sbin/dhcpd/dhcpd.conf.5: correction from tamas tevesz; ok ian
+
+2005-11-25 16:24  krw
+
+	* usr.sbin/dhcpd/conflex.c: Missing 'break;' found by lint. 'blass'
+	  is not the same as 'class'!
+
+	  ok moritz@ otto@
+
+2005-11-22 21:33  beck
+
+	* usr.sbin/dhcpd/dhcp.c: fix problem of dhcp server looping with
+	  "already acking lease" when busy with short lease times. Fix by
+	  and discussed with millert over a year ago, run at u of a for
+	  over a year, but never committed.  ok millert@ cloder@
+
+2005-11-13 20:25  deraadt
+
+	* usr.sbin/dhcpd/print.c: pretty up print_hw_addr(), and even fix a
+	  teeny buffer overflow; ok otto
+
+2005-09-30 20:34  jaredy
+
+	* usr.sbin/dhcpd/: dhcp-options.5, dhcpd.8, dhcpd.conf.5,
+	  dhcpd.leases.5: deploy .An -nosplit; ok jmc
+
+2005-07-29 17:26  krw
+
+	* usr.sbin/dhcpd/bpf.c: Fix erroneous use of '=' instead of '+'
+	  that caused infinite loops when skipping packets. Use
+	  BPF_WORDALIGN() to properly skip packets.  From Brooks Davis at
+	  FreeBSD.
+
+	  ok deraadt@ henning@
+
+2005-07-26 19:14  krw
+
+	* usr.sbin/dhcpd/conflex.c: Fix buffer overflows in dhcpd and
+	  dhclient. Closes PR#4306.
+
+	  ok henning@
+
+2005-05-23 22:54  henning
+
+	* usr.sbin/dhcpd/dhcpd.c: -endpwent
+
+2005-05-02 02:29  djm
+
+	* usr.sbin/dhcpd/dhcpd.c: more setres[ug]id; ok deraadt@
+
+2005-04-18 16:39  moritz
+
+	* usr.sbin/dhcpd/: errwarn.c, print.c: snprintf() return value
+	  handling. ok cloder@ henning@
+
+2005-04-11 19:59  deraadt
+
+	* usr.sbin/dhcpd/errwarn.c: use STDERR_FILENO; ok cloder
+
+2005-04-11 18:59  deraadt
+
+	* usr.sbin/dhcpd/errwarn.c: use writev() here too; henning ok
+
+2005-04-11 18:50  fgsch
+
+	* usr.sbin/dhcpd/errwarn.c: when -d is used, log to stderr, not via
+	  syslog(3); fixed pr/4171.  ok henning@
+
+2005-03-02 15:55  jmc
+
+	* usr.sbin/dhcpd/dhcp-options.5: oops - 2 copies of this file...
+	  move the .Bl after .Ss;
+
+2005-01-31 22:21  claudio
+
+	* usr.sbin/dhcpd/dhcp.c: Be a bit more paranoid about leases that
+	  are currently acked. There is a small window where it is possible
+	  that a lease is acked and simultaniously removed and so the state
+	  is not removed. This may be a cause for the "already acking"
+	  issue. OK millert@
+
+2005-01-31 21:23  claudio
+
+	* usr.sbin/dhcpd/: bootp.c, dhcp.c: Simply use the ethernet source
+	  address of the request as new ethernet destination instead of the
+	  one included in the dhcp packet. Especially because there are to
+	  many cases where the supplied address is wrong.  This hopefully
+	  solves all problems with gateways involved, like the one reported
+	  by Dylan Martin.  OK krw@ henning@ millert@
+
+2005-01-31 18:27  millert
+
+	* usr.sbin/dhcpd/dispatch.c: Don't malloc fds each time, just
+	  realloc() as needed.	There's no need to clear revents -- poll()
+	  does that for us.  Move setting of cur_time to the top of the
+	  loop for better accuracy.  When poll returns 0, don't check
+	  revents since we know none were set.
+
+2005-01-29 16:29  millert
+
+	* usr.sbin/dhcpd/dhcp.c: Fix memory leak when supersede_lease()
+	  fails and it is a DHCPACK or a dynamic BOOTREPLY offer.  OK
+	  claudio@
+
+2004-12-06 17:18  claudio
+
+	* usr.sbin/dhcpd/dhcp.c: Bah, unbreak. from not form. Noticed by
+	  Dan Harnett.
+
+2004-12-06 13:51  claudio
+
+	* usr.sbin/dhcpd/dhcp.c: Set correct source address for relayed
+	  packets. This affects only setups that use 'next-server' config
+	  option. From Hans Kremers. OK henning@
+
+2004-10-31 10:43  canacar
+
+	* usr.sbin/dhcpd/: dhcpd.8, dhcpd.c, dhcpd.h, dispatch.c: change
+	  the undocumented -t flag to -n used for configuration testing and
+	  document it. cleanup some unused/unneeded variables while there.
+	  idea & ok henning@
+
+2004-09-21 04:07  david
+
+	* usr.sbin/dhcpd/: dispatch.c, memory.c, options.c: spelling fixes;
+	  ok jmc@ henning@
+
+2004-09-16 21:27  claudio
+
+	* usr.sbin/dhcpd/inet.c: Use inet_ntop() instead of inet_ntoa() in
+	  piaddr. This solves a problem where inet_ntoa() was called twice
+	  per log message -- once here and once directly. This is a
+	  workaround acctually no static buffer should be used.  OK
+	  deraadt@
+
+2004-09-16 18:35  deraadt
+
+	* usr.sbin/dhcpd/: alloc.c, bootp.c, bpf.c, conflex.c, confpars.c,
+	  db.c, dhcp.c, dhcpd.c, dhcpd.h, dispatch.c, errwarn.c, hash.c,
+	  icmp.c, memory.c, options.c, parse.c, tree.c, tree.h: avoid
+	  aliasing with libc functions; ok henning
+
+2004-09-16 09:35  claudio
+
+	* usr.sbin/dhcpd/: bootp.c, dhcp.c, dhcpd.h, dispatch.c: Remove the
+	  not initialized fallback_interface code and use the normal bpf
+	  interface for that. Also store the hardware (ethernet) address in
+	  the state so that relayed dhcp request are sent to the correct
+	  destination.	OK henning@ requested by deraadt@ tested otto@
+
+2004-09-15 22:12  deraadt
+
+	* usr.sbin/dhcpd/dispatch.c: size_t vs ssize_t confusion
+
+2004-09-15 18:15  henning
+
+	* usr.sbin/dhcpd/confpars.c: minor KNF, Moritz Jodeit
+	  <moritz@jodeit.org>
+
+2004-09-09 20:51  millert
+
+	* usr.sbin/dhcpd/: confpars.c, dhcpd.c: Avoid following a NULL
+	  pointer if a hostname lookup fails and remove an extraneous
+	  "exiting" when there is a config file error.	OK henning@ and
+	  mcbride@
+
+2004-08-23 19:38  pvalchev
+
+	* usr.sbin/dhcpd/dhcpd.8: update bootp example "filename" location
+	  to reflect tftp default of chrooting to /tftpboot (thus "filename
+	  foo" searches there); ok henning
+
+2004-07-29 11:58  henning
+
+	* usr.sbin/dhcpd/db.c: don't wipe lease file on startup, found &
+	  solution tested nick@
+
+2004-07-09 16:22  deraadt
+
+	* usr.sbin/dhcpd/db.c: ansi
+
+2004-06-20 16:27  henning
+
+	* usr.sbin/dhcpd/dhcp-options.5: fix the "option
+	  dhcp-client-identifier" hex example From: Marco Munari <mar@i.am>
+	  in PR3824
+
+2004-05-25 17:41  canacar
+
+	* usr.sbin/dhcpd/dispatch.c: handle interface removals gracefully.
+	  reported by Oliver J. Morais ok henning@, tedu@
+
+2004-05-24 06:22  henning
+
+	* usr.sbin/dhcpd/dhcp.c: typo; From: Andrey Matveev
+	  <andrushock@korovino.net>
+
+2004-05-12 10:20  henning
+
+	* usr.sbin/dhcpd/dhcpd.c: like always I missed tzset(); Ben Lovett
+	  <ben@tilderoot.com>
+
+2004-05-11 04:08  deraadt
+
+	* usr.sbin/dhcpd/: bootp.c, memory.c: knf
+
+2004-05-08 06:12  henning
+
+	* usr.sbin/dhcpd/tree.c: remove hostname lookup stuff, done at
+	  parse time now, ok theo
+
+2004-05-08 06:11  henning
+
+	* usr.sbin/dhcpd/confpars.c: resolve hostnames at parse time,
+	  solves PR3771, ok theo
+
+2004-05-06 22:05  deraadt
+
+	* usr.sbin/dhcpd/confpars.c: spacing
+
+2004-05-04 21:25  deraadt
+
+	* usr.sbin/dhcpd/: convert.c, dhcp.c, dhcpd.h, options.c, print.c:
+	  remove DEBUG_PACKET stuff; henning ok
+
+2004-05-04 20:28  deraadt
+
+	* usr.sbin/dhcpd/: alloc.c, bootp.c, bpf.c, convert.c, dhcp.c,
+	  dhcpd.c, dhcpd.h, dispatch.c, inet.c, memory.c, options.c,
+	  parse.c, print.c: remove things not used, spotted by lint mostly;
+	  ok henning
+
+2004-04-22 15:22  henning
+
+	* usr.sbin/dhcpd/: dhcpd.h, icmp.c: instead of using some lower 16
+	  bits of some address on the stack that even requires knowledge
+	  about wether the machine is 32 or 64 bit, use getpid() for the
+	  icmp id. that is not optimal, but matches what ping does and the
+	  way to go for now.
+
+2004-04-21 22:44  henning
+
+	* usr.sbin/dhcpd/icmp.c: cleaning; Ryan ok
+
+2004-04-21 09:11  canacar
+
+	* usr.sbin/dhcpd/: bootp.c, bpf.c, dhcp.c, dhcpd.c, dhcpd.h,
+	  packet.c: filter writes and lock bpf descriptor, ok henning@
+
+2004-04-21 08:00  jmc
+
+	* usr.sbin/dhcpd/dhcpd.leases.5: missing comma;
+
+2004-04-21 07:59  jmc
+
+	* usr.sbin/dhcpd/dhcp-options.5: sync AUTHORS w/ other dhcpd pages;
+	  ok henning@
+
+2004-04-21 01:44  henning
+
+	* usr.sbin/dhcpd/dhcpd.c: fix the error message in case the _dhcp
+	  user does not exist
+
+2004-04-20 23:01  henning
+
+	* usr.sbin/dhcpd/: Makefile, dhcp-options.5: add back manpage that
+	  was forgotten during the switch, catched by and ok theo
+
+2004-04-20 05:35  henning
+
+	* usr.sbin/dhcpd/: confpars.c, dhcp.c, dhcpd.h, dispatch.c, icmp.c,
+	  memory.c, print.c, tree.c: $OpenBSD$
+
+2004-04-20 03:58  henning
+
+	* usr.sbin/dhcpd/dhcpd.8: there are lies, damn lies, and isc dhcpd
+	  manpages
+
+2004-04-20 03:46  henning
+
+	* usr.sbin/dhcpd/: dhcpd.8, dhcpd.leases.5: remove lies about the
+	  leases file and its handling
+
+2004-04-20 00:27  henning
+
+	* usr.sbin/dhcpd/: dhcpd.8, dhcpd.c: don't allow the port to be
+	  changed here either
+
+2004-04-19 17:05  tom
+
+	* usr.sbin/dhcpd/dhcp.c: Catch negative lease times.  From
+	  openbsd@nerd-marrow.com in PR 2888, which this closes (though the
+	  PR was for usr.sbin/dhcpd/server/).
+
+	  ok henning@
+
+2004-04-18 01:32  deraadt
+
+	* usr.sbin/dhcpd/: bootp.c, dhcp.c: spacing
+
+2004-04-18 01:19  henning
+
+	* usr.sbin/dhcpd/: bootp.c, confpars.c, db.c, dispatch.c: more KNF
+
+2004-04-18 00:59  deraadt
+
+	* usr.sbin/dhcpd/confpars.c: more knf
+
+2004-04-18 00:43  deraadt
+
+	* usr.sbin/dhcpd/: bootp.c, confpars.c, db.c, dhcp.c, dhcpd.c,
+	  dhcpd.h, dispatch.c, icmp.c, memory.c, parse.c, print.c,
+	  tables.c, tree.c: various knf; henning ok
+
+2004-04-18 00:30  henning
+
+	* usr.sbin/dhcpd/dhcpd.c: dhcpd may be invoked without any
+	  interface given
+
+2004-04-16 04:30  deraadt
+
+	* usr.sbin/dhcpd/: dhcp.c, dhcpd.c, dispatch.c, inet.c, memory.c,
+	  print.c, tree.c: a bunch of knf, ok henning
+
+2004-04-15 23:20  henning
+
+	* usr.sbin/dhcpd/dhcpd.c: chroot and drop privileges after startup
+
+2004-04-15 23:20  henning
+
+	* usr.sbin/dhcpd/db.c: do not close and re-open the leases file all
+	  the time, instead open it once and rewind as neccessary
+
+2004-04-15 23:17  henning
+
+	* usr.sbin/dhcpd/bpf.c: dhcpd actually does not listen on port 68
+	  ...
+
+2004-04-15 22:22  hshoexer
+
+	* usr.sbin/dhcpd/: parse.c, print.c: knf + ansi
+
+	  ok henning@
+
+2004-04-15 21:57  henning
+
+	* usr.sbin/dhcpd/: bootp.c, db.c: cleaning; from pedro
+
+2004-04-15 21:47  hshoexer
+
+	* usr.sbin/dhcpd/: tree.c, tree.h: knf + ansi
+
+	  ok henning@
+
+2004-04-15 08:34  jmc
+
+	* usr.sbin/dhcpd/: dhcpd.8, dhcpd.c, dhcpd.conf.5, dhcpd.leases.5:
+	  - trim/update AUTHORS - standard options list and correct
+	  SYNOPSIS for dhcpd(8) - sync usage()
+
+	  ok henning@
+
+2004-04-14 04:45  henning
+
+	* usr.sbin/dhcpd/version.h: useless too
+
+2004-04-14 04:44  deraadt
+
+	* usr.sbin/dhcpd/icmp.c: ansi
+
+2004-04-14 04:42  henning
+
+	* usr.sbin/dhcpd/: dhcpd.cat8, dhcpd.conf.cat5, dhcpd.leases.cat5:
+	  king bula sez those are bula
+
+2004-04-14 04:34  deraadt
+
+	* usr.sbin/dhcpd/: bootp.c, confpars.c, db.c, dhcp.c, dhcpd.c,
+	  dhcpd.h, dispatch.c, icmp.c, memory.c, print.c, tree.c: spaces
+
+2004-04-14 04:21  henning
+
+	* usr.sbin/dhcpd/dhcpd.c: KNF, ansi and such
+
+2004-04-14 04:13  henning
+
+	* usr.sbin/dhcpd/dhcpd.c: getopt
+
+2004-04-14 03:59  henning
+
+	* usr.sbin/dhcpd/dhcpd.c: less pathetic usage(), and I felt free to
+	  remove the helpfull /* print usage message */
+
+2004-04-14 02:18  henning
+
+	* usr.sbin/dhcpd/dhcpd.c: remove pidfile gunk, use daemon, and get
+	  rid of some debugging crap
+
+2004-04-14 02:13  henning
+
+	* usr.sbin/dhcpd/dhcpd.c: don't print half a terminal worth of
+	  vixie advertising at startup and in usage
+
+2004-04-14 01:27  henning
+
+	* usr.sbin/dhcpd/: convert.c, inet.c, options.c, parse.c, tables.c:
+	  the ones from dhclient do, and they're already KNF'd and
+	  annsified...
+
+2004-04-14 01:09  henning
+
+	* usr.sbin/dhcpd/: dhcp.h, dhcpd.h, dhctoken.h, hash.h, inet.h,
+	  tree.h: fold in 10liners and clean up other .hs a bit
+
+2004-04-14 00:56  henning
+
+	* usr.sbin/dhcpd/: cdefs.h, conflex.c, dhcpd.c, dhcpd.h,
+	  dispatch.c, hash.c, icmp.c, packet.c, sysconf.h, tree.c: more
+	  crap bites the dust
+
+2004-04-14 00:24  henning
+
+	* usr.sbin/dhcpd/: dhcpd.h, osdep.h: bye bye
+
+2004-04-14 00:20  henning
+
+	* usr.sbin/dhcpd/alloc.c: cheat to KNF and ansi this: take the one
+	  from dhclient and add back the few missing functions
+
+2004-04-14 00:06  henning
+
+	* usr.sbin/dhcpd/dhcpd.h: dhcpd may know about a thousand strange
+	  things to get packets onto the wire, but we do not care for them,
+	  really
+
+2004-04-14 00:01  henning
+
+	* usr.sbin/dhcpd/osdep.h: we want bpf only
+
+2004-04-13 23:59  henning
+
+	* usr.sbin/dhcpd/: osdep.h, site.h: sure a good idea to include 100
+	  lines of comments Just Because...
+
+2004-04-13 23:57  henning
+
+	* usr.sbin/dhcpd/: conflex.c, confpars.c, db.c, dhcp.c, dhcpd.c,
+	  dhcpd.h, dispatch.c, memory.c, parse.c, tree.c, tree.h: time_t
+	  and kill a few dumb defines
+
+2004-04-13 23:41  henning
+
+	* usr.sbin/dhcpd/: Makefile, alloc.c, bootp.c, bpf.c, cdefs.h,
+	  conflex.c, confpars.c, convert.c, db.c, dhcp.c, dhcp.h, dhcpd.8,
+	  dhcpd.c, dhcpd.cat8, dhcpd.conf, dhcpd.conf.5, dhcpd.conf.cat5,
+	  dhcpd.h, dhcpd.leases.5, dhcpd.leases.cat5, dhctoken.h,
+	  dispatch.c, errwarn.c, hash.c, hash.h, icmp.c, inet.c, inet.h,
+	  memory.c, options.c, osdep.h, packet.c, parse.c, print.c, site.h,
+	  sysconf.h, tables.c, tree.c, tree.h, version.h: may the whacking
+	  begin
+
