@@ -401,7 +401,11 @@ sync_lease(struct lease *lease)
 	char pad[DHCP_ALIGNBYTES];
 	u_int16_t leaselen, padlen;
 	int i = 0;
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 	HMAC_CTX ctx;
+#else
+	HMAC_CTX *ctx = HMAC_CTX_new();
+#endif
 	u_int hmac_len;
 
 	if (sync_key == NULL)
@@ -411,8 +415,12 @@ sync_lease(struct lease *lease)
 	memset(&lv, 0, sizeof(lv));
 	memset(&pad, 0, sizeof(pad));
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 	HMAC_CTX_init(&ctx);
 	HMAC_Init(&ctx, sync_key, strlen(sync_key), EVP_sha1());
+#else
+	HMAC_Init_ex(ctx, sync_key, strlen(sync_key), EVP_sha1(), NULL);
+#endif
 
 	leaselen = sizeof(lv);
 	padlen = DHCP_ALIGN(leaselen) - leaselen;
@@ -424,7 +432,11 @@ sync_lease(struct lease *lease)
 	hdr.sh_length = htons(sizeof(hdr) + sizeof(lv) + padlen + sizeof(end));
 	iov[i].iov_base = &hdr;
 	iov[i].iov_len = sizeof(hdr);
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 	HMAC_Update(&ctx, iov[i].iov_base, iov[i].iov_len);
+#else
+	HMAC_Update(ctx, iov[i].iov_base, iov[i].iov_len);
+#endif
 	i++;
 
 	/* Add single DHCP sync address entry */
@@ -442,12 +454,20 @@ sync_lease(struct lease *lease)
 	    piaddr(lease->ip_addr), ntohl(lv.lv_starts), ntohl(lv.lv_ends));
 	iov[i].iov_base = &lv;
 	iov[i].iov_len = sizeof(lv);
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 	HMAC_Update(&ctx, iov[i].iov_base, iov[i].iov_len);
+#else
+	HMAC_Update(ctx, iov[i].iov_base, iov[i].iov_len);
+#endif
 	i++;
 
 	iov[i].iov_base = pad;
 	iov[i].iov_len = padlen;
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 	HMAC_Update(&ctx, iov[i].iov_base, iov[i].iov_len);
+#else
+	HMAC_Update(ctx, iov[i].iov_base, iov[i].iov_len);
+#endif
 	i++;
 
 	/* Add end marker */
@@ -455,12 +475,24 @@ sync_lease(struct lease *lease)
 	end.st_length = htons(sizeof(end));
 	iov[i].iov_base = &end;
 	iov[i].iov_len = sizeof(end);
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 	HMAC_Update(&ctx, iov[i].iov_base, iov[i].iov_len);
+#else
+	HMAC_Update(ctx, iov[i].iov_base, iov[i].iov_len);
+#endif
 	i++;
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 	HMAC_Final(&ctx, hdr.sh_hmac, &hmac_len);
+#else
+	HMAC_Final(ctx, hdr.sh_hmac, &hmac_len);
+#endif
 
 	/* Send message to the target hosts */
 	sync_send(iov, i);
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 	HMAC_CTX_cleanup(&ctx);
+#else
+	HMAC_CTX_free(ctx);
+#endif
 }
