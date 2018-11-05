@@ -15,6 +15,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#ifndef NO_PF /* No need of PF support */
+
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
@@ -255,3 +257,4 @@ pfmsg(char c, struct lease *lp)
 		break;
 	}
 }
+#endif /* NO_PF */

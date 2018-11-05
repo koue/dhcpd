@@ -624,9 +624,11 @@ supersede_lease(struct lease *comp, struct lease *lease, int commit)
 		comp->ends = lease->ends;
 	}
 
+#ifndef NO_PF
 	pfmsg('L', lease); /* address is leased. remove from purgatory */
 	if (do_pftable) /* address changed hwaddr. remove from overload */
 		pfmsg('C', lease);
+#endif /* NO_PF */
 
 	/* Return zero if we didn't commit the lease to permanent storage;
 	   nonzero if we did. */
@@ -646,7 +648,9 @@ release_lease(struct lease *lease)
 		supersede_lease(lease, &lt, 1);
 		log_info("Released lease for IP address %s",
 		    piaddr(lease->ip_addr));
+#ifndef NO_PF
 		pfmsg('R', lease);
+#endif /* NO_PF */
 	}
 }
 
@@ -674,7 +678,9 @@ abandon_lease(struct lease *lease, char *message)
 	lt.uid_len = 0;
 	supersede_lease(lease, &lt, 1);
 
+#ifndef NO_PF
 	pfmsg('A', lease); /* address is abandoned. send to purgatory */
+#endif /* NO_PF */
 	return;
 }
 

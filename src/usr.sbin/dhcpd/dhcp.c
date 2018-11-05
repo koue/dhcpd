@@ -155,6 +155,7 @@ dhcpdiscover(struct packet *packet)
 			 * If we can't find an unabandoned lease,
 			 * reclaim the abandoned lease.
 			 */
+#ifndef NO_PF
 			if ((lease->flags & ABANDONED_LEASE)) {
 				log_warnx("Reclaiming abandoned IP address %s.",
 				    piaddr(lease->ip_addr));
@@ -162,6 +163,7 @@ dhcpdiscover(struct packet *packet)
 
 				pfmsg('L', lease); /* unabandon address */
 			}
+#endif /* NO_PF */
 		}
 
 		/* Try to find a host_decl that matches the client
