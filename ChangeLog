@@ -1,3 +1,17 @@
+2018-12-07 12:52  henning
+
+	* usr.sbin/dhcpd/pfutils.c: I noticed the "pf table handler"
+	  process not going away on dhcpd restart, looked at the error
+	  handling here, and.... oh my.  If opening /dev/pf on startup
+	  fails, don't just warn and move on, but bail.  If chroot (or the
+	  chdir after) fail, don't just warn and move on, bail.  If
+	  dropping privileges fails, the last thing we want to do is to
+	  just move on with root privs, having warned or not.  If the pipe
+	  to the parent process is closed, that almost certainly means that
+	  the parent process went away, and it absolutely certainly means
+	  that the table handler process has no meaningful reason to exist
+	  any more, thus bail.	ok florian ccardenas krw
+
 2018-07-03 12:51  krw
 
 	* usr.sbin/dhcpd/dhcpd.conf.5: Tighten up description of
