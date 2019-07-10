@@ -45,6 +45,9 @@
 
 #include <limits.h>
 #include <netdb.h>
+#ifndef __OpenBSD__
+#include <netinet/in.h>
+#endif
 #include <resolv.h>
 #include <stdio.h>
 #include <stdlib.h>
