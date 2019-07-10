@@ -1,3 +1,85 @@
+2019-06-28 13:32  deraadt
+
+	* usr.sbin/dhcpd/: pfutils.c, udpsock.c: When system calls indicate
+	  an error they return -1, not some arbitrary value < 0.  errno is
+	  only updated in this case.  Change all (most?) callers of
+	  syscalls to follow this better, and let's see if this strictness
+	  helps us in the future.
+
+2019-05-10 15:03  visa
+
+	* usr.sbin/dhcpd/confpars.c: Fix dhcpd build on gcc architectures.
+
+	  OK deraadt@ jca@
+
+2019-05-08 22:00  krw
+
+	* usr.sbin/dhcpd/: confpars.c, dhcp-options.5, dhcp.h, dhcpd.h,
+	  tables.c: Switch domain-search parsing from hand rolled hex
+	  string to human readable list of strings.
+
+	  Slightly tweaked version of a diff from William Ahern via tech@.
+
+	  Long silence on all fronts leads to community based testing.
+
+2019-04-02 03:21  krw
+
+	* usr.sbin/dhcpd/dhcp-options.5: Document new domain-search syntax
+	  available to dhclient(8).
+
+2019-04-01 14:45  jmc
+
+	* usr.sbin/dhcpd/dhcp-options.5: missing full stop;
+
+2019-04-01 11:21  krw
+
+	* usr.sbin/dhcpd/dhcp-options.5: Add a rfc1035 data type and use it
+	  to describe domain-search. Mention that dhcpd(8) still calls this
+	  option-119. Also mention that the information provided by this
+	  option will be used in preference to domain-name when
+	  constructing resolv.conf(5).
+
+	  Merciless prodding by florian@ and kn@.
+
+2019-04-01 10:25  krw
+
+	* usr.sbin/dhcpd/dhcp-options.5: Describe the cidr data type and
+	  rework the classless[-ms]-static-routes verbiage to use cidr and
+	  ip-address types rather than hand waving manual construction.
+
+	  Add an explicit note that dhclient(8) ignores the obsolete
+	  "static-routes" option.
+
+2019-04-01 09:37  krw
+
+	* usr.sbin/dhcpd/dhcp-options.5: int16 and int8 are not used for
+	  any option. So don't mention them.
+
+2019-04-01 08:52  krw
+
+	* usr.sbin/dhcpd/dhcp-options.5: Document dhcp-message (a.k.a.
+	  option 56) and tweak verbiage for dhcp-max-message-size (a.k.a.
+	  option 57) in the hope of clarifying things.
+
+2019-04-01 08:37  krw
+
+	* usr.sbin/dhcpd/dhcp-options.5: Correct the documentation of
+	  relay-agent-information, nds-context and nds-tree-name to show
+	  that they are parsed as data-string ('X') and not string ('t').
+
+	  Correct the documentation of dhcp-option-overload to show that it
+	  is parsed as a single uint8, not an array of uint8s.
+
+2019-03-18 00:00  dlg
+
+	* usr.sbin/dhcpd/bpf.c: explicitly use BPF_FILDROP_CAPTURE when
+	  configuring BIOCSFILDROP
+
+	  BIOCSFILDROP used to just be a flag, ie, any non-zero value was
+	  treated the same, but i'm changing it so different values do
+	  different things. this way the programs should keep working even
+	  if i decide to change the values for these macros.
+
 2018-12-07 12:52  henning
 
 	* usr.sbin/dhcpd/pfutils.c: I noticed the "pf table handler"
