@@ -1,3 +1,85 @@
+2020-04-06 17:23  benno
+
+	* usr.sbin/dhcpd/memory.c: this is errata 6.6/024_dhcpd.patch.sig
+
+	  Commit to current was:
+
+	  revision 1.29 date: 2020/04/06 17:05:40;  author: krw;  state:
+	  Exp;	lines: +3 -2;  commitid:$ dhcpd could reference freed
+	  memory after releasing a lease with an unusually long uid.
+	  Reported by Adarsh Dinesh. Thanks!
+
+2020-04-06 17:22  benno
+
+	* usr.sbin/dhcpd/memory.c: this is errata 6.5/034_dhcpd.patch.sig
+
+	  Commit to current was:
+
+	  revision 1.29 date: 2020/04/06 17:05:40;  author: krw;  state:
+	  Exp;	lines: +3 -2;  commitid:$ dhcpd could reference freed
+	  memory after releasing a lease with an unusually long uid.
+	  Reported by Adarsh Dinesh. Thanks!
+
+2020-04-06 17:05  krw
+
+	* usr.sbin/dhcpd/memory.c: dhcpd could reference freed memory after
+	  releasing a lease with an unusually long uid.
+
+	  Reported by Adarsh Dinesh. Thanks!
+
+2019-10-03 14:49  claudio
+
+	* usr.sbin/dhcpd/icmp.c: Properly initalize the ICMP message to
+	  zero to avoid leaking 4-byte of uninitialised memory in the sent
+	  icmp echorequest.  Reported by Adarsh Dinesh (adarsh.dinesh at
+	  gmail com) OK florian@ deraadt@
+
+	  OpenBSD 6.4 errata 026
+
+2019-10-03 14:48  claudio
+
+	* usr.sbin/dhcpd/icmp.c: Properly initalize the ICMP message to
+	  zero to avoid leaking 4-byte of uninitialised memory in the sent
+	  icmp echorequest.  Reported by Adarsh Dinesh (adarsh.dinesh at
+	  gmail com) OK florian@ deraadt@
+
+	  OpenBSD 6.5 errata 014
+
+2019-10-03 13:36  claudio
+
+	* usr.sbin/dhcpd/icmp.c: Properly initalize the ICMP message to
+	  zero to avoid leaking 4-byte of uninitialised memory in the sent
+	  icmp echorequest.  Reported by Adarsh Dinesh (adarsh.dinesh at
+	  gmail com) OK florian@ deraadt@
+
+2019-08-08 06:59  mestre
+
+	* usr.sbin/dhcpd/pfutils.c: One missing piece when I added
+	  pledge(2) to dhcpd(8) was in the code path when it's invoked with
+	  either -A/-C/-L, which at the time I left alone due to some
+	  forbidden ioctls by pledge(2).
+
+	  Now we have unveil(2) and this path can be further restricted by
+	  using it instead of chroot(2) since this "sandbox" (not sure why
+	  people call sandbox to about everything these days) can be
+	  escaped with *at(2) calls.
+
+	  Since no filesystem access is needed here then we can disable its
+	  access by calling unveil("/", "") unveil(NULL, NULL).
+
+	  added /* no filesystem visibility */ as per suggestion by and OK
+	  deraadt@
+
+2019-08-06 11:07  krw
+
+	* usr.sbin/dhcpd/dhcpd.c: Use pw->pw_dir when chroot'ing, not
+	  _PATH_VAREMPTY.
+
+	  Brings various dhcp related daemons into line with the common
+	  idiom.
+
+	  ok florian@
+
 2019-06-28 13:32  deraadt
 
 	* usr.sbin/dhcpd/: pfutils.c, udpsock.c: When system calls indicate
