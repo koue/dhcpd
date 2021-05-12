@@ -1,3 +1,42 @@
+2020-11-10 16:42  krw
+
+	* usr.sbin/dhcpd/: dhcpd.h, hash.c, memory.c: Remove prototypes for
+	  functions removed 10+ years ago. Return types should be on their
+	  own lines.
+
+	  Diffs from Martin Vahlensiech via tech@. Thanks!
+
+2020-05-16 16:58  jmc
+
+	* usr.sbin/dhcpd/dhcpd.conf.5: list example files in FILES with a
+	  short description: generally, "Example configuration file.", but
+	  occasionally something else fit better; at the same time, try to
+	  make the format for FILES more consistent;
+
+	  original diff from clematis
+
+2020-04-23 15:00  krw
+
+	* usr.sbin/dhcpd/confpars.c: Correctly parse "0/0" as the default
+	  route when specifying the classless-[ms-]static-routes options in
+	  dhcpd.conf.
+
+	  Brings dhcpd.conf CIDR parsing in line with dhclient.conf,
+	  dhcp-options(5) and the command lines of various utilities.
+
+	  Inconsistency noted and fix tested by Freda Bundchen. Thanks!
+
+2020-04-17 06:24  dtucker
+
+	* usr.sbin/dhcpd/dhcpd.conf.5: Document using /etc/ethers to look
+	  up ethernet addresses.  ok krw@, wordsmithing jmc@
+
+2020-04-16 23:23  dtucker
+
+	* usr.sbin/dhcpd/parse.c: Support looking up ethernet addresses in
+	  /etc/ethers at dhcpd startup time.  If the lookup fails it falls
+	  back to parsing the ethernet address normally.  ok krw@
+
 2020-04-06 17:23  benno
 
 	* usr.sbin/dhcpd/memory.c: this is errata 6.6/024_dhcpd.patch.sig
