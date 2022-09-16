@@ -1,4 +1,4 @@
-/*	$OpenBSD: sync.c,v 1.23 2017/02/13 23:04:05 krw Exp $	*/
+/*	$OpenBSD: sync.c,v 1.24 2022/01/05 11:01:59 tb Exp $	*/
 
 /*
  * Copyright (c) 2008 Bob Beck <beck@openbsd.org>
@@ -401,11 +401,7 @@ sync_lease(struct lease *lease)
 	char pad[DHCP_ALIGNBYTES];
 	u_int16_t leaselen, padlen;
 	int i = 0;
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-	HMAC_CTX ctx;
-#else
-	HMAC_CTX *ctx = HMAC_CTX_new();
-#endif
+	HMAC_CTX *ctx;
 	u_int hmac_len;
 
 	if (sync_key == NULL)
@@ -415,12 +411,10 @@ sync_lease(struct lease *lease)
 	memset(&lv, 0, sizeof(lv));
 	memset(&pad, 0, sizeof(pad));
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-	HMAC_CTX_init(&ctx);
-	HMAC_Init(&ctx, sync_key, strlen(sync_key), EVP_sha1());
-#else
-	HMAC_Init_ex(ctx, sync_key, strlen(sync_key), EVP_sha1(), NULL);
-#endif
+	if ((ctx = HMAC_CTX_new()) == NULL)
+		goto bad;
+	if (!HMAC_Init_ex(ctx, sync_key, strlen(sync_key), EVP_sha1(), NULL))
+		goto bad;
 
 	leaselen = sizeof(lv);
 	padlen = DHCP_ALIGN(leaselen) - leaselen;
@@ -432,11 +426,8 @@ sync_lease(struct lease *lease)
 	hdr.sh_length = htons(sizeof(hdr) + sizeof(lv) + padlen + sizeof(end));
 	iov[i].iov_base = &hdr;
 	iov[i].iov_len = sizeof(hdr);
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-	HMAC_Update(&ctx, iov[i].iov_base, iov[i].iov_len);
-#else
-	HMAC_Update(ctx, iov[i].iov_base, iov[i].iov_len);
-#endif
+	if (!HMAC_Update(ctx, iov[i].iov_base, iov[i].iov_len))
+		goto bad;
 	i++;
 
 	/* Add single DHCP sync address entry */
@@ -454,20 +445,14 @@ sync_lease(struct lease *lease)
 	    piaddr(lease->ip_addr), ntohl(lv.lv_starts), ntohl(lv.lv_ends));
 	iov[i].iov_base = &lv;
 	iov[i].iov_len = sizeof(lv);
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-	HMAC_Update(&ctx, iov[i].iov_base, iov[i].iov_len);
-#else
-	HMAC_Update(ctx, iov[i].iov_base, iov[i].iov_len);
-#endif
+	if (!HMAC_Update(ctx, iov[i].iov_base, iov[i].iov_len))
+		goto bad;
 	i++;
 
 	iov[i].iov_base = pad;
 	iov[i].iov_len = padlen;
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-	HMAC_Update(&ctx, iov[i].iov_base, iov[i].iov_len);
-#else
-	HMAC_Update(ctx, iov[i].iov_base, iov[i].iov_len);
-#endif
+	if (!HMAC_Update(ctx, iov[i].iov_base, iov[i].iov_len))
+		goto bad;
 	i++;
 
 	/* Add end marker */
@@ -475,24 +460,16 @@ sync_lease(struct lease *lease)
 	end.st_length = htons(sizeof(end));
 	iov[i].iov_base = &end;
 	iov[i].iov_len = sizeof(end);
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-	HMAC_Update(&ctx, iov[i].iov_base, iov[i].iov_len);
-#else
-	HMAC_Update(ctx, iov[i].iov_base, iov[i].iov_len);
-#endif
+	if (!HMAC_Update(ctx, iov[i].iov_base, iov[i].iov_len))
+		goto bad;
 	i++;
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-	HMAC_Final(&ctx, hdr.sh_hmac, &hmac_len);
-#else
-	HMAC_Final(ctx, hdr.sh_hmac, &hmac_len);
-#endif
+	if (!HMAC_Final(ctx, hdr.sh_hmac, &hmac_len))
+		goto bad;
 
 	/* Send message to the target hosts */
 	sync_send(iov, i);
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-	HMAC_CTX_cleanup(&ctx);
-#else
+
+ bad:
 	HMAC_CTX_free(ctx);
-#endif
 }

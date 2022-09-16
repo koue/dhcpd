@@ -1,3 +1,90 @@
+2022-03-31 17:27  naddy
+
+	* usr.sbin/dhcpd/: dhcp-options.5, dhcpd.8, dhcpd.conf.5: man
+	  pages: add missing commas between subordinate and main clauses
+
+	  jmc@ dislikes a comma before "then" in a conditional, so leave
+	  those untouched.
+
+	  ok jmc@
+
+2022-01-28 06:33  guenther
+
+	* usr.sbin/dhcpd/memory.c: When it's the possessive of 'it', it's
+	  spelled "its", without the apostrophe.
+
+2022-01-16 21:20  naddy
+
+	* usr.sbin/dhcpd/parse.c: dhcpd: fix -Wunused-but-set-variable
+	  warning
+
+	  ok krw@
+
+2022-01-05 11:01  tb
+
+	* usr.sbin/dhcpd/sync.c: dhcpd: straightforward conversion to
+	  HMAC_CTX on the heap, similar to what was done in spamd a while
+	  back.
+
+	  ok florian
+
+2021-12-13 18:28  deraadt
+
+	* usr.sbin/dhcpd/log.h: including sys/cdefs.h manually started as a
+	  result of netbsd trying to macro-build a replacement for sccsid,
+	  and was done without any concern for namespace damage.
+	  Unfortunately this practice started infecting other code as
+	  others were unaware they didn't need the file.  ok millert
+	  guenther
+
+2021-11-20 11:47  kn
+
+	* usr.sbin/dhcpd/dispatch.c: Start on DOWN interfaces
+
+	  Do not skip interfaces during startup because they're not UP.
+
+	  dhcpd(8) can start listening on such interfaces just fine (given
+	  suitable IPs on them) and interfaces may come UP later in time.
+
+	  Otherwise dhcpd would fail to start completely if it didn't find
+	  any interface that would be UP early on and administrators had to
+	  restart dhcpd.
+
+	  Other daemons and nc(1)'s `-l' listen just fine on DOWN
+	  interfaces as well.
+
+	  Noticed while switching a bridge(4)/vether(4) setup to
+	  veb(4)/vport(4) and hostname.vport without explicit "up" (vport
+	  does not implicitly pulls itself UP when configuring an address).
+
+	  OK dlg florian
+
+2021-10-24 21:24  deraadt
+
+	* usr.sbin/dhcpd/pfutils.c: For open/openat, if the flags parameter
+	  does not contain O_CREAT, the 3rd (variadic) mode_t parameter is
+	  irrelevant.  Many developers in the past have passed mode_t (0,
+	  044, 0644, or such), which might lead future people to copy this
+	  broken idiom, and perhaps even believe this parameter has some
+	  meaning or implication or application. Delete them all.  This
+	  comes out of a conversation where tb@ noticed that a strange (but
+	  intentional) pledge behaviour is to always knock-out high-bits
+	  from mode_t on a number of system calls as a safety factor, and
+	  his bewilderment that this appeared to be happening against valid
+	  modes (at least visually), but no sorry, they are all irrelevant
+	  junk.  They could all be 0xdeafbeef.	ok millert
+
+2021-07-12 15:09  beck
+
+	* usr.sbin/dhcpd/pfutils.c: Change the error reporting pattern
+	  throughout the tree when unveil fails to report the path that the
+	  failure occured on. Suggested by deraadt@ after some tech
+	  discussion.
+
+	  Work done and verified by Ashton Fagg <ashton@fagg.id.au>
+
+	  ok deraadt@ semarie@ claudio@
+
 2020-11-10 16:42  krw
 
 	* usr.sbin/dhcpd/: dhcpd.h, hash.c, memory.c: Remove prototypes for
