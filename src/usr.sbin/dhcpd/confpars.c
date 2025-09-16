@@ -1538,7 +1538,15 @@ parse_domain_and_comp(FILE *cfile)
 		 * by dots, and also provides sufficient space for pointer
 		 * compression.
 		 */
+#ifdef _OpenBSD__
 		bufsiz = bufsiz + 2 + strlen(domain);
+#else
+		/*
+		 * On FreeBSD it requires +3 otherwise 'dn_comp' fails.
+		 * https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=284772
+		 */
+		bufsiz = bufsiz + 3 + strlen(domain);
+#endif
 		token = peek_token(NULL, cfile);
 	} while (token == ',');
 
