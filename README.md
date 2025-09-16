@@ -23,9 +23,3 @@ http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/usr.sbin/dhcpd/
 ## Usage
 
 `dhcpd -c etc/examples/dhcpd.conf`
-
-## Status
-
-master | develop
--------|--------
-[![Build Status](https://cipier.net/status/koue/dhcpd/master)](https://cipier.net/status/koue/dhcpd/master) | [![Build Status](https://cipier.net/status/koue/dhcpd/develop)](https://cipier.net/status/koue/dhcpd/develop)

@@ -1,0 +1,6 @@
+*.o
+*.gz
+*.depend
+*.full
+*.debug
+src/usr.sbin/dhcpd/dhcpd
