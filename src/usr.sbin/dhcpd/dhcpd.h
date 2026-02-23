@@ -500,8 +500,12 @@ void assemble_hw_header(struct interface_info *, unsigned char *,
 void assemble_udp_ip_header(struct interface_info *, unsigned char *,
     int *, u_int32_t, u_int32_t, unsigned int, unsigned char *, int);
 ssize_t decode_hw_header(unsigned char *, u_int32_t, struct hardware *);
+#ifdef __OpenBSD__
 ssize_t decode_udp_ip_header(unsigned char *, u_int32_t, struct sockaddr_in *,
     u_int16_t);
+#else
+ssize_t decode_udp_ip_header(unsigned char *, u_int32_t, struct sockaddr_in *);
+#endif
 u_int32_t	checksum(unsigned char *, u_int32_t, u_int32_t);
 u_int32_t	wrapsum(u_int32_t);
 

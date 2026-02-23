@@ -169,7 +169,11 @@ decode_hw_header(unsigned char *buf, u_int32_t buflen, struct hardware *from)
 
 ssize_t
 decode_udp_ip_header(unsigned char *buf, u_int32_t buflen,
+#ifdef __OpenBSD__
     struct sockaddr_in *from, u_int16_t csumflags)
+#else
+    struct sockaddr_in *from)
+#endif
 {
 	struct ip *ip;
 	struct udphdr *udp;
@@ -194,7 +198,11 @@ decode_udp_ip_header(unsigned char *buf, u_int32_t buflen,
 	ip_packets_seen++;
 
 	/* Check the IP header checksum - it should be zero. */
+#ifdef __OpenBSD__
 	if ((csumflags & M_IPV4_CSUM_IN_OK) == 0 &&
+#else
+	if (1 &&
+#endif
 	    wrapsum(checksum((unsigned char *)ip, ip_len, 0)) != 0) {
 		ip_packets_bad_checksum++;
 		if (ip_packets_seen > 4 && ip_packets_bad_checksum != 0 &&
@@ -256,7 +264,11 @@ decode_udp_ip_header(unsigned char *buf, u_int32_t buflen,
 
 	udp_packets_seen++;
 
+#ifdef __OpenBSD__
 	if ((csumflags & M_UDP_CSUM_IN_OK) == 0 &&
+#else
+	if (1 &&
+#endif
 	    udp->uh_sum != 0) {
 		udp->uh_sum = wrapsum(checksum((uint8_t *)udp, sizeof(*udp),
 		    checksum(data, len,

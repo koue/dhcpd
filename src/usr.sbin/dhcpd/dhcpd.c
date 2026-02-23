@@ -71,7 +71,9 @@ struct group root_group;
 u_int16_t server_port;
 u_int16_t client_port;
 
+#ifdef __OpenBSD__
 int rdomain;
+#endif
 struct passwd *pw;
 int log_priority;
 #ifndef NO_PF
@@ -103,7 +105,9 @@ main(int argc, char *argv[])
 	log_init(1, LOG_DAEMON);	/* log to stderr until daemonized */
 	log_setverbose(1);
 
+#ifdef __OpenBSD__
 	rdomain = getrtable();
+#endif
 
 	opterr = 0;
 	while ((ch = getopt(argc, argv, "A:C:L:c:dfl:nu::vY:y:")) != -1)

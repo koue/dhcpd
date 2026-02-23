@@ -67,7 +67,9 @@
 #include "log.h"
 #include "sync.h"
 
+#ifdef __OpenBSD__
 extern int rdomain;
+#endif
 
 struct interface_info *interfaces;
 struct protocol *protocols;
@@ -138,11 +140,15 @@ discover_interfaces(void)
 		/* If we have the capability, extract link information
 		   and record it in a linked list. */
 		if (ifa->ifa_addr->sa_family == AF_LINK) {
+#ifdef __OpenBSD__
 			struct if_data *ifi = ifa->ifa_data;
+#endif
 			struct sockaddr_dl *sdl;
 
+#ifdef __OpenBSD__
 			if (rdomain != ifi->ifi_rdomain)
 				continue;
+#endif
 
 			sdl = (struct sockaddr_dl *)ifa->ifa_addr;
 			tmp->index = sdl->sdl_index;
