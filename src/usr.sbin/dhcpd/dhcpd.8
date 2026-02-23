@@ -1,4 +1,4 @@
-.\"	$OpenBSD: dhcpd.8,v 1.30 2022/03/31 17:27:29 naddy Exp $
+.\"	$OpenBSD: dhcpd.8,v 1.38 2025/06/14 12:45:39 kn Exp $
 .\"
 .\" Copyright (c) 1995, 1996 The Internet Software Consortium.
 .\" All rights reserved.
@@ -36,16 +36,16 @@
 .\" see ``http://www.isc.org/''.  To learn more about Vixie
 .\" Enterprises, see ``http://www.vix.com''.
 .\"
-.Dd $Mdocdate: March 31 2022 $
+.Dd $Mdocdate: June 14 2025 $
 .Dt DHCPD 8
 .Os
 .Sh NAME
 .Nm dhcpd
-.Nd Dynamic Host Configuration Protocol (DHCP) server
+.Nd Dynamic Host Configuration Protocol (DHCP) daemon
 .Sh SYNOPSIS
 .Nm dhcpd
 .Bk -words
-.Op Fl dfn
+.Op Fl dfnv
 .Op Fl A Ar abandoned_ip_table
 .Op Fl C Ar changed_ip_table
 .Op Fl c Ar config-file
@@ -54,7 +54,7 @@
 .Op Fl u Ns Op Ar bind_address
 .Op Fl Y Ar synctarget
 .Op Fl y Ar synclisten
-.Op Ar if0 Op Ar ... ifN
+.Op Ar interface ...
 .Ek
 .Sh DESCRIPTION
 .Nm
@@ -84,13 +84,19 @@ Each client is assigned a lease, which expires after an amount of time
 chosen by the administrator (by default, one day).
 When a leased IP address is assigned to a new hardware address,
 .Nm
-may delete the leased IP from certain
+may delete the leased address from certain
 .Xr pf 4
 tables.
 Before leases expire, the clients to which leases are assigned are expected
 to renew them in order to continue to use the addresses.
 Once a lease has expired, the client to which that lease was assigned is no
 longer permitted to use the leased IP address.
+.Pp
+Whenever changes are made to the
+.Pa dhcpd.conf
+file,
+.Nm
+must be restarted.
 .Pp
 In order to keep track of leases across system reboots and server restarts,
 .Nm
@@ -112,50 +118,22 @@ reads the
 .Pa dhcpd.leases
 file to refresh its memory about what leases have been assigned.
 .Pp
-BOOTP support is also provided by this server.
-Unlike DHCP, the BOOTP protocol does not provide a protocol for recovering
-dynamically-assigned addresses once they are no longer needed.
-It is still possible to dynamically assign addresses to BOOTP clients, but
-some administrative process for reclaiming addresses is required.
-By default, leases are granted to BOOTP clients in perpetuity, although
-the network administrator may set an earlier cutoff date or a shorter
-lease length for BOOTP leases if that makes sense.
-.Pp
-BOOTP clients may also be served in the old standard way, which is
-simply to provide a declaration in the
-.Pa dhcpd.conf
-file for each BOOTP client, permanently assigning an address to each client.
-.Pp
-Whenever changes are made to the
-.Pa dhcpd.conf
-file,
+When
 .Nm
-must be restarted.
-Because the DHCP server database is not as lightweight as a BOOTP database,
+starts up, it identifies all network interfaces,
+eliminating non-broadcast interfaces if possible,
+and listens for DHCP broadcasts on each interface.
+The names of the network interfaces on which
 .Nm
-does not automatically restart itself when it sees a change to the
-.Pa dhcpd.conf
-file.
+should listen for broadcasts may also be specified on the command line
+on systems where
+.Nm
+is unable to identify non-broadcast interfaces.
 .Pp
 DHCP traffic always bypasses IPsec.
 Otherwise there could be situations when a server has an IPsec SA for the
 client and sends replies over that,
 which a newly booted client would not be able to grasp.
-.Sh COMMAND LINE
-The names of the network interfaces on which
-.Nm
-should listen for broadcasts may be specified on the command line.
-This should be done on systems where
-.Nm
-is unable to identify non-broadcast interfaces,
-but should not be required on other systems.
-If no interface names are specified on the command line,
-and the
-.Fl u
-option is not given,
-.Nm
-will identify all network interfaces which are up, eliminating non-broadcast
-interfaces if possible, and listen for DHCP broadcasts on each interface.
 .Pp
 The options are as follows:
 .Bl -tag -width Ds
@@ -249,6 +227,8 @@ is specified,
 .Nm
 will bind to that address; otherwise
 the limited broadcast address (255.255.255.255) is used as the default.
+.It Fl v
+Produce more verbose output.
 .It Fl Y Ar synctarget
 Add target
 .Ar synctarget
@@ -276,6 +256,21 @@ See also
 .Sx SYNCHRONISATION
 below.
 .El
+.Sh BOOTP
+.Nm
+also provides BOOTP support.
+Unlike DHCP, the BOOTP protocol does not provide a protocol for recovering
+dynamically-assigned addresses once they are no longer needed.
+It is still possible to dynamically assign addresses to BOOTP clients, but
+some administrative process for reclaiming addresses is required.
+By default, leases are granted to BOOTP clients in perpetuity, although
+the network administrator may set an earlier cutoff date or a shorter
+lease length for BOOTP leases if that makes sense.
+.Pp
+BOOTP clients may also be served in the old standard way, which is
+simply to provide a declaration in the
+.Pa dhcpd.conf
+file for each BOOTP client, permanently assigning an address to each client.
 .Sh CONFIGURATION
 The syntax of the
 .Xr dhcpd.conf 5
@@ -466,7 +461,7 @@ DHCPD lease file.
 .Xr pf 4 ,
 .Xr dhcpd.conf 5 ,
 .Xr dhcpd.leases 5 ,
-.Xr dhclient 8 ,
+.Xr dhcpleased 8 ,
 .Xr dhcrelay 8 ,
 .Xr pxeboot 8
 .Sh STANDARDS

@@ -1,4 +1,4 @@
-/*	$OpenBSD: dhcpd.h,v 1.68 2020/11/10 16:42:17 krw Exp $ */
+/*	$OpenBSD: dhcpd.h,v 1.73 2025/06/10 06:29:53 dlg Exp $ */
 
 /*
  * Copyright (c) 1995, 1996, 1997, 1998, 1999
@@ -136,8 +136,6 @@ struct lease {
 };
 
 struct lease_state {
-	struct lease_state *next;
-
 	struct interface_info *ip;
 
 	time_t offered_expiry;
@@ -291,6 +289,7 @@ struct protocol {
 	int fd;
 	void (*handler)(struct protocol *);
 	void *local;
+	int pfd; /* slot used in the pollfd array */
 };
 
 #define _PATH_DHCPD_CONF	"/etc/dhcpd.conf"
@@ -332,7 +331,6 @@ extern char		*path_dhcpd_conf;
 extern char		*path_dhcpd_db;
 
 int	main(int, char *[]);
-void	cleanup(void);
 void	lease_pinged(struct iaddr, u_int8_t *, int);
 void	lease_ping_timeout(void *);
 void	periodic_scan(void *);
@@ -340,8 +338,6 @@ void	periodic_scan(void *);
 /* conflex.c */
 extern int	 lexline, lexchar;
 extern char	*token_line, *tlname;
-extern char	 comments[4096];
-extern int	 comment_index;
 extern int	 eol_token;
 
 void	new_parse(char *);
@@ -454,7 +450,7 @@ ssize_t receive_packet(struct interface_info *, unsigned char *, size_t,
 extern struct interface_info *interfaces;
 extern struct protocol *protocols;
 extern struct dhcpd_timeout *timeouts;
-void discover_interfaces(int *);
+void discover_interfaces(void);
 void dispatch(void);
 int locate_network(struct packet *);
 void got_one(struct protocol *);
@@ -504,7 +500,8 @@ void assemble_hw_header(struct interface_info *, unsigned char *,
 void assemble_udp_ip_header(struct interface_info *, unsigned char *,
     int *, u_int32_t, u_int32_t, unsigned int, unsigned char *, int);
 ssize_t decode_hw_header(unsigned char *, u_int32_t, struct hardware *);
-ssize_t decode_udp_ip_header(unsigned char *, u_int32_t, struct sockaddr_in *);
+ssize_t decode_udp_ip_header(unsigned char *, u_int32_t, struct sockaddr_in *,
+    u_int16_t);
 u_int32_t	checksum(unsigned char *, u_int32_t, u_int32_t);
 u_int32_t	wrapsum(u_int32_t);
 

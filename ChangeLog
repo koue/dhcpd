@@ -1,3 +1,223 @@
+2025-12-18 03:16  jsg
+
+	* usr.sbin/dhcpd/dispatch.c: avoid use-after-free when a network
+	  interface is destroyed
+
+	  When iterating over the protocols list, the got_one handler will
+	  free a protocol if an interface dhcpd was listening on was
+	  destroyed.
+
+	  problem reported by landry@, feedback and ok claudio@
+
+2025-09-28 10:11  florian
+
+	* usr.sbin/dhcpd/dhcp-options.5: The ipv6-only-preferred option
+	  takes seconds as argument.
+
+	  Pointed out by Beni Keller at EuroBSDCon 2025
+
+2025-06-28 13:02  jsg
+
+	* usr.sbin/dhcpd/dispatch.c: remove prototypes for removed
+	  functions
+
+2025-06-14 12:45  kn
+
+	* usr.sbin/dhcpd/: dhcpd.8, dhcpd.c: straighten synopsis for
+	  interface arguments
+
+2025-06-10 06:33  dlg
+
+	* usr.sbin/dhcpd/dhcpd.8: dhcpd uses the rdomain it was started in,
+	  so clean up words about rdomains.
+
+2025-06-10 06:29  dlg
+
+	* usr.sbin/dhcpd/: dhcpd.c, dhcpd.h, dispatch.c: change dhcpd to
+	  use the rdomain/rtable it was started in.
+
+	  previously it would use the rdomain on the first interface it was
+	  explicitly configured to open. it is much more natural to use the
+	  rdomain it's been started in, which integrates better with rcctl.
+
+	  a version of this was tested by mark patruck ok kn@ claudio@
+
+2025-06-04 21:16  dlg
+
+	* usr.sbin/dhcpd/: dhcpd.c, dispatch.c, sync.c, sync.h: use
+	  add_protocol to integrate syncfd into the poll fd handling.
+
+	  without this a dhcpd sync setup gets stuck. i thought i'd already
+	  committed it, but mark patruck hit the issue.
+
+	  mark confirms the fix too.
+
+2025-05-31 07:49  dlg
+
+	* usr.sbin/dhcpd/dispatch.c: simplify/beautify the code for
+	  function pointer calls.
+
+	  suggested by tb@
+
+2025-05-31 07:47  dlg
+
+	* usr.sbin/dhcpd/: dhcpd.h, dispatch.c: store which pollfd array
+	  entry protocols are mapped to.
+
+	  ive been hacking on dhcpd code and hit an issue where the pollfd
+	  handling would fire a handler for the wrong fd. make this more
+	  robust by making protocol structs remember which pollfd array
+	  slot they were using.
+
+	  ok tb@
+
+2025-05-31 06:27  dlg
+
+	* usr.sbin/dhcpd/dispatch.c: get rid of the free_timeouts list too.
+
+	  pointed out by and ok tb@
+
+2025-05-31 01:42  dlg
+
+	* usr.sbin/dhcpd/: alloc.c, dhcpd.h: actually free memory back to
+	  malloc rather than maintain a free list.
+
+	  dhcpd doesn't need the performance optimisation, or to make it
+	  easier to do use-after-frees.
+
+	  ok tb@ otto@ deraadt@
+
+2025-05-22 04:24  dlg
+
+	* usr.sbin/dhcpd/udpsock.c: get rid of unecessary casts
+
+	  ok florian@
+
+2025-02-07 21:48  bluhm
+
+	* usr.sbin/dhcpd/: bpf.c, dhcpd.h, packet.c: Respect checksum
+	  offloading for incoming UDP in dhcpd(8).
+
+	  When sending IP packets over virtual machines on the same host,
+	  vio(4) can offload the checksum and never calculate it.  As
+	  neither sender nor host calculate checksum, it is always wrong,
+	  and the receiver has to check a flag.  A similar fix has been
+	  commited in dhcpleased(8) a while ago.  RFC 1071 recomends to
+	  verify the checksum by calculating it over the packet including
+	  the checksum and compare to 0.  That is also what our kernel
+	  does.  Convert the logic in dhcpd(8) to that algorithm.
+
+	  tested and OK jan@ markus@
+
+2024-08-24 08:35  sthen
+
+	* usr.sbin/dhcpd/sync.c: Change DHCP_SYNC_LEASE messages from
+	  log_info to log_debug, they result in quite a lot of noise in a
+	  typical dhcpd sync setup.
+
+	  From Michał Markowski, ok florian
+
+2024-08-21 09:19  florian
+
+	* usr.sbin/dhcpd/dhcpd.c: s/inet_aton/inet_pton/
+
+	  OK claudio
+
+2024-06-27 20:15  jmc
+
+	* usr.sbin/dhcpd/dhcp-options.5: space before punctuation in macro;
+
+2024-06-27 16:39  florian
+
+	* usr.sbin/dhcpd/: dhcp-options.5, dhcpd.8, dhcpd.leases.5,
+	  parse.c: Remove outdated references to dhclient, it's finally
+	  going away.
+
+	  Input & OK jmc
+
+2024-05-21 05:00  jsg
+
+	* usr.sbin/dhcpd/dhcpd.h: remove prototypes with no matching
+	  function and externs with no var partly checked by millert@
+
+2024-04-19 19:16  jmc
+
+	* usr.sbin/dhcpd/dhcpd.8: replace a (technically incorrect)
+	  instance of "IP" with "address";
+
+	  issue reported by tech3599 at posteo net via henning; discussed
+	  with/ok henning
+
+2023-11-23 16:30  florian
+
+	* usr.sbin/dhcpd/dhcp-options.5: tweak previous; suggested by jmc
+
+2023-11-22 18:06  florian
+
+	* usr.sbin/dhcpd/: dhcp-options.5, tables.c: Recognize option
+	  ipv6-only-preferred (RFC8925).
+
+	  "option option-108 00:00:07:08;" is unwieldy and error prone.
+
+	  OK denis, kn, deraadt
+
+2023-10-06 05:31  jmc
+
+	* usr.sbin/dhcpd/dhcpd.c: add -v to usage();
+
+2023-10-05 18:46  mvs
+
+	* usr.sbin/dhcpd/: dhcpd.8, dhcpd.c: Do log output to stderr while
+	  running dhcpd(8) in foreground to make behaviour in accordance
+	  with man page. Introduce '-v' option to make output more verbose.
+
+	  Do a little refactoring to make code more consistent with other
+	  daemons like ospfd(8), httpd(8), relayd(8), etc.
+
+	  Feedback from bluhm benno
+
+	  ok bluhm
+
+2023-09-04 16:11  jmc
+
+	* usr.sbin/dhcpd/dhcpd.8: rework DESCRIPTION for readability. put
+	  the BOOTP stuff in its own section, to avoid cluttering things
+	  up. remove the useless COMMAND LINE section header, and shuffle
+	  text accordingly.
+
+	  ok stsp claudio krw
+
+2023-09-03 20:19  stsp
+
+	* usr.sbin/dhcpd/dhcpd.8: Document rdomain-related behaviour of
+	  dhcpd(8).
+
+	  ok jmc
+
+2023-09-02 10:18  kn
+
+	* usr.sbin/dhcpd/dispatch.c: Fix comment about skipped interfaces
+
+	  After r1.44 "Start on DOWN interfaces" this sentence makes no
+	  sense and just repeats the obvious conditions, so zap it.
+
+	  With/OK stsp
+
+2023-03-02 17:09  jmc
+
+	* usr.sbin/dhcpd/dhcpd.8: improve the Nd lines such that the format
+	  is consistent for the various *d, *conf, *ctl files (where
+	  relevant) and simple;
+
+	  also makes "man -k routing" more useful;
+
+	  help from claudio and florian ok claudio florian millert
+
+2023-02-08 08:20  tb
+
+	* usr.sbin/dhcpd/pfutils.c: usr.sbin: missing void to appease clang
+	  15's -Wstrict-prototype.
+
 2022-03-31 17:27  naddy
 
 	* usr.sbin/dhcpd/: dhcp-options.5, dhcpd.8, dhcpd.conf.5: man
