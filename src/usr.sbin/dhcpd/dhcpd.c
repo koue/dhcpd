@@ -1,4 +1,4 @@
-/*	$OpenBSD: dhcpd.c,v 1.57 2019/08/06 11:07:37 krw Exp $ */
+/*	$OpenBSD: dhcpd.c,v 1.63 2025/06/14 12:45:39 kn Exp $ */
 
 /*
  * Copyright (c) 2004 Henning Brauer <henning@cvs.openbsd.org>
@@ -71,6 +71,7 @@ struct group root_group;
 u_int16_t server_port;
 u_int16_t client_port;
 
+int rdomain;
 struct passwd *pw;
 int log_priority;
 int pfpipe[2];
@@ -87,7 +88,8 @@ char *leased_tab = NULL;
 int
 main(int argc, char *argv[])
 {
-	int ch, cftest = 0, daemonize = 1, rdomain = -1, udpsockmode = 0;
+	int ch, cftest = 0, udpsockmode = 0;
+	int debug = 0, verbose = 0;
 	char *sync_iface = NULL;
 	char *sync_baddr = NULL;
 	u_short sync_port = 0;
@@ -97,8 +99,10 @@ main(int argc, char *argv[])
 	log_init(1, LOG_DAEMON);	/* log to stderr until daemonized */
 	log_setverbose(1);
 
+	rdomain = getrtable();
+
 	opterr = 0;
-	while ((ch = getopt(argc, argv, "A:C:L:c:dfl:nu::Y:y:")) != -1)
+	while ((ch = getopt(argc, argv, "A:C:L:c:dfl:nu::vY:y:")) != -1)
 		switch (ch) {
 		case 'Y':
 			syncsend = 1;
@@ -117,7 +121,7 @@ main(int argc, char *argv[])
 	udpaddr.s_addr = htonl(INADDR_BROADCAST);
 
 	optreset = optind = opterr = 1;
-	while ((ch = getopt(argc, argv, "A:C:L:c:dfl:nu::Y:y:")) != -1)
+	while ((ch = getopt(argc, argv, "A:C:L:c:dfl:nu::vY:y:")) != -1)
 		switch (ch) {
 		case 'A':
 			abandoned_tab = optarg;
@@ -132,25 +136,27 @@ main(int argc, char *argv[])
 			path_dhcpd_conf = optarg;
 			break;
 		case 'd':
-			daemonize = 0;
-			break;
+			/* FALLTHROUGH */
 		case 'f':
-			daemonize = 0;
+			debug = 1;
 			break;
 		case 'l':
 			path_dhcpd_db = optarg;
 			break;
 		case 'n':
-			daemonize = 0;
+			debug = 1;
 			cftest = 1;
 			break;
 		case 'u':
 			udpsockmode = 1;
 			if (optarg != NULL) {
-				if (inet_aton(optarg, &udpaddr) != 1)
+				if (inet_pton(AF_INET, optarg, &udpaddr) != 1)
 					errx(1, "Cannot parse binding IP "
 					    "address: %s", optarg);
 			}
+			break;
+		case 'v':
+			verbose = 1;
 			break;
 		case 'Y':
 			if (sync_addhost(optarg, sync_port) != 0)
@@ -194,23 +200,18 @@ main(int argc, char *argv[])
 
 	db_startup();
 	if (!udpsockmode || argc > 0)
-		discover_interfaces(&rdomain);
-
-	if (rdomain != -1)
-		if (setrtable(rdomain) == -1)
-			fatal("setrtable");
+		discover_interfaces();
 
 	if (syncsend || syncrecv) {
-		syncfd = sync_init(sync_iface, sync_baddr, sync_port);
-		if (syncfd == -1)
+		if (sync_init(sync_iface, sync_baddr, sync_port) == -1)
 			err(1, "sync init");
 	}
 
-	if (daemonize)
-		daemon(0, 0);
+	log_init(debug, LOG_DAEMON);
+	log_setverbose(verbose);
 
-	log_init(0, LOG_DAEMON);	/* stop logging to stderr */
-	log_setverbose(0);
+	if (!debug)
+		daemon(0, 0);
 
 	if ((pw = getpwnam("_dhcp")) == NULL)
 		fatalx("user \"_dhcp\" not found");
@@ -273,12 +274,12 @@ usage(void)
 {
 	extern char *__progname;
 
-	fprintf(stderr, "usage: %s [-dfn] [-A abandoned_ip_table]",
+	fprintf(stderr, "usage: %s [-dfnv] [-A abandoned_ip_table]",
 	    __progname);
 	fprintf(stderr, " [-C changed_ip_table]\n");
 	fprintf(stderr, "\t[-c config-file] [-L leased_ip_table]");
 	fprintf(stderr, " [-l lease-file] [-u[bind_address]]\n");
-	fprintf(stderr, "\t[-Y synctarget] [-y synclisten] [if0 [... ifN]]\n");
+	fprintf(stderr, "\t[-Y synctarget] [-y synclisten] [interface ...]\n");
 	exit(1);
 }
 

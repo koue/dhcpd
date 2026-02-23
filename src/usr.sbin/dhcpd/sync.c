@@ -1,4 +1,4 @@
-/*	$OpenBSD: sync.c,v 1.24 2022/01/05 11:01:59 tb Exp $	*/
+/*	$OpenBSD: sync.c,v 1.26 2025/06/04 21:16:25 dlg Exp $	*/
 
 /*
  * Copyright (c) 2008 Bob Beck <beck@openbsd.org>
@@ -61,6 +61,7 @@ struct sync_host {
 };
 LIST_HEAD(synchosts, sync_host) sync_hosts = LIST_HEAD_INITIALIZER(sync_hosts);
 
+void	 sync_recv(struct protocol *);
 void	 sync_send(struct iovec *, int);
 
 int
@@ -223,6 +224,8 @@ sync_init(const char *iface, const char *baddr, u_short port)
 		    sendmcast ? "" : "receive ",
 		    ttl, inet_ntoa(sync_out.sin_addr), port);
 
+	add_protocol("sync", syncfd, sync_recv, NULL);
+
 	return (syncfd);
 
  fail:
@@ -231,7 +234,7 @@ sync_init(const char *iface, const char *baddr, u_short port)
 }
 
 void
-sync_recv(void)
+sync_recv(struct protocol *protocol)
 {
 	struct dhcp_synchdr *hdr;
 	struct sockaddr_in addr;
@@ -307,7 +310,7 @@ sync_recv(void)
 			    sizeof(lp->ip_addr));
 			memcpy(&lp->hardware_addr, &lv->lv_hardware_addr,
 			    sizeof(lp->hardware_addr));
-			log_info("DHCP_SYNC_LEASE from %s for hw %s -> ip %s, "
+			log_debug("DHCP_SYNC_LEASE from %s for hw %s -> ip %s, "
 			    "start %lld, end %lld",
 			    inet_ntoa(addr.sin_addr),
 			    print_hw_addr(lp->hardware_addr.htype,
@@ -431,7 +434,7 @@ sync_lease(struct lease *lease)
 	memcpy(&lv.lv_ip_addr, &lease->ip_addr, sizeof(lv.lv_ip_addr));
 	memcpy(&lv.lv_hardware_addr, &lease->hardware_addr,
 	    sizeof(lv.lv_hardware_addr));
-	log_info("sending DHCP_SYNC_LEASE for hw %s -> ip %s, start %d, "
+	log_debug("sending DHCP_SYNC_LEASE for hw %s -> ip %s, start %d, "
 	    "end %d", print_hw_addr(lv.lv_hardware_addr.htype,
 	    lv.lv_hardware_addr.hlen, lv.lv_hardware_addr.haddr),
 	    piaddr(lease->ip_addr), ntohl(lv.lv_starts), ntohl(lv.lv_ends));
