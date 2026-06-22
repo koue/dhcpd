@@ -1,3 +1,17 @@
+2026-06-21 19:23  tb
+
+	* usr.sbin/dhcpd/parse.c: annotate tm_wday = -1 with /* sentinel
+	  for error */ per timegm(3) manpage
+
+	  suggested by deraadt
+
+2026-06-20 07:29  tb
+
+	* usr.sbin/dhcpd/parse.c: dhcpd: use error check per timegm(3)
+	  manpage
+
+	  ok florian
+
 2025-12-18 03:16  jsg
 
 	* usr.sbin/dhcpd/dispatch.c: avoid use-after-free when a network
