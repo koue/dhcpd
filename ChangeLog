@@ -1,3 +1,24 @@
+2026-06-29 20:48  millert
+
+	* usr.sbin/dhcpd/: dhcpd.h, options.c: create_priority_list: fix
+	  the priority_len bounds check OK job@
+
+2026-06-22 14:44  millert
+
+	* usr.sbin/dhcpd/options.c: create_priority_list: add bounds check
+	  for priority_len
+
+	  Overflow should not be possible since we deduplicate the options
+	  but an explicit check won't hurt.  Also move the dedup check for
+	  options 121 and 245 right before they are stored to match the
+	  other checks.  OK deraadt@ florian@
+
+2026-06-22 13:41  florian
+
+	* usr.sbin/dhcpd/options.c: Do not overflow the priority_list.
+
+	  Each option goes in only once, even if they always have priority.
+
 2026-06-21 19:23  tb
 
 	* usr.sbin/dhcpd/parse.c: annotate tm_wday = -1 with /* sentinel

@@ -1,4 +1,4 @@
-/*	$OpenBSD: options.c,v 1.35 2017/02/13 22:33:39 krw Exp $	*/
+/*	$OpenBSD: options.c,v 1.38 2026/06/29 20:48:05 millert Exp $	*/
 
 /* DHCP options parsing and reassembly. */
 
@@ -220,7 +220,7 @@ void
 create_priority_list(unsigned char *priority_list, unsigned char *prl,
     int prl_len)
 {
-	unsigned char stored_list[256];
+	unsigned char stored_list[OPTIONS_LEN];
 	int i, priority_len = 0;
 
 	/* clear stored_list, priority_list should be cleared before */
@@ -244,12 +244,16 @@ create_priority_list(unsigned char *priority_list, unsigned char *prl,
 		/* CLASSLESS routes always have priority, sayeth RFC 3442. */
 		if (prl[i] == DHO_CLASSLESS_STATIC_ROUTES ||
 		    prl[i] == DHO_CLASSLESS_MS_STATIC_ROUTES) {
+			if (stored_list[prl[i]] ||
+			    priority_len >= OPTIONS_LEN)
+				continue;
 			priority_list[priority_len++] = prl[i];
 			stored_list[prl[i]] = 1;
 		}
 	}
 	for(i = 0; i < prl_len; i++) {
-		if (stored_list[prl[i]])
+		if (stored_list[prl[i]] ||
+		    priority_len >= OPTIONS_LEN)
 			continue;
 		priority_list[priority_len++] = prl[i];
 		stored_list[prl[i]] = 1;
@@ -257,8 +261,9 @@ create_priority_list(unsigned char *priority_list, unsigned char *prl,
 
 	/* Default priority list. */
 	prl = dhcp_option_default_priority_list;
-	for(i = 0; i < 256; i++) {
-		if (stored_list[prl[i]])
+	for(i = 0; i < OPTIONS_LEN; i++) {
+		if (stored_list[prl[i]] ||
+		    priority_len >= OPTIONS_LEN)
 			continue;
 		priority_list[priority_len++] = prl[i];
 		stored_list[prl[i]] = 1;
@@ -275,7 +280,7 @@ cons_options(struct packet *inpacket, struct dhcp_packet *outpacket,
     int overload, /* Overload flags that may be set. */
     int terminate, int bootpp, u_int8_t *prl, int prl_len)
 {
-	unsigned char priority_list[256];
+	unsigned char priority_list[OPTIONS_LEN];
 	unsigned char buffer[4096];	/* Really big buffer... */
 	int bufix, main_buffer_size, option_size;
 
@@ -421,7 +426,7 @@ store_options(unsigned char *buffer, int main_buffer_size,
 	/*
 	 * Store options in the order they appear in the priority list.
 	 */
-	for (i = 0; i < 256; i++) {
+	for (i = 0; i < OPTIONS_LEN; i++) {
 		/* Code for next option to try to store. */
 		code = priority_list[i];
 		if (code == DHO_PAD || code == DHO_END)
@@ -557,6 +562,6 @@ do_packet(struct interface_info *interface, struct dhcp_packet *packet,
 		bootp(&tp);
 
 	/* Free the data associated with the options. */
-	for (i = 0; i < 256; i++)
+	for (i = 0; i < OPTIONS_LEN; i++)
 		free(tp.options[i].data);
 }
