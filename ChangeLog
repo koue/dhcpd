@@ -1,3 +1,27 @@
+2026-09-19 00:33  jsg
+
+	* usr.sbin/dhcpd/dhcp.c: avoid double frees; ok krw@
+
+2026-09-18 13:38  krw
+
+	* usr.sbin/dhcpd/memory.c: Don't try to look for an invalid iaddr
+	  in the iaddr hash. It's not there.
+
+	  Prevents bogus or malicious iaddr data from crashing dhcpd.
+
+	  Problem found and part of a larger diff by Acts1631.
+
+	  ok tb@
+
+2026-09-17 20:06  krw
+
+	* usr.sbin/dhcpd/: alloc.c, dhcp.c: Avoid potential memory
+	  exhaustion via DHCPINFORM.
+
+	  Problem found and diff by Acts1631.
+
+	  ok tb@
+
 2026-06-29 20:48  millert
 
 	* usr.sbin/dhcpd/: dhcpd.h, options.c: create_priority_list: fix
